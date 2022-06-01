@@ -26,7 +26,27 @@ class BenchOMatic():
                 'url': 'https://browserbench.org/Speedometer2.0/',
                 'start': 'startTest();',
                 'done': "return (document.getElementById('results-with-statistics') && document.getElementById('results-with-statistics').innerText.length > 0);",
-                'result': "return parseInt(document.getElementById('result-number').innerText);"
+                'result': "return [parseInt(document.getElementById('result-number').innerText), benchmarkClient._measuredValuesList];",
+                'suites': [
+                    'Angular2-TypeScript-TodoMVC',
+                    'AngularJS-TodoMVC',
+                    'BackboneJS-TodoMVC',
+                    'Elm-TodoMVC',
+                    'EmberJS-Debug-TodoMVC',
+                    'EmberJS-TodoMVC',
+                    'Flight-TodoMVC',
+                    'Inferno-TodoMVC',
+                    'Preact-TodoMVC',
+                    'React-Redux-TodoMVC',
+                    'React-TodoMVC',
+                    'Vanilla-ES2015-Babel-Webpack-TodoMVC',
+                    'Vanilla-ES2015-TodoMVC',
+                    'VanillaJS-TodoMVC',
+                    'VueJS-TodoMVC',
+                    'jQuery-TodoMVC',
+                ],
+                'suite_result':
+                    lambda results, suite: sum([20000 / r['tests'][suite]['total'] for r in results[1]]) / len(results[1]),
             },
             'MotionMark 1.2': {
                 'url': 'https://browserbench.org/MotionMark1.2/',
@@ -52,10 +72,16 @@ class BenchOMatic():
             csv_file = self.bench_root + benchmark_name.replace(' ', '') + '.csv'
             with open(csv_file, 'wt') as f:
                 f.write('Run')
+                display_names = []
                 for browser_name in browser_names:
                     if 'version' in self.browsers[browser_name]:
                         browser_name += ' ' + self.browsers[browser_name]['version']
+                    display_names.append(browser_name)
                     f.write(',{}'.format(browser_name))
+                if 'suites' in self.benchmarks[benchmark_name]:
+                    for suite in self.benchmarks[benchmark_name]['suites']:
+                        for browser_name in display_names:
+                            f.write(',{} {}'.format(browser_name, suite))
                 f.write('\n')
 
         for run in range(self.runs):
@@ -95,7 +121,15 @@ class BenchOMatic():
                 with open(csv_file, 'at') as f:
                     f.write(self.run_timestamp)
                     for browser_name in browser_names:
-                        f.write(',{}'.format(results[browser_name] if browser_name in results else ''))
+                        result = results[browser_name] if browser_name in results else ''
+                        f.write(',{}'.format(result[0] if isinstance(result, list) else result))
+                    if 'suites' in benchmark:
+                        for suite in benchmark['suites']:
+                            for browser_name in browser_names:
+                                if browser_name in results:
+                                    f.write(',{}'.format(benchmark['suite_result'](results[browser_name], suite)))
+                                else:
+                                    f.write(',')
                     f.write('\n')
 
     def launch_browser(self, browser):
@@ -111,6 +145,9 @@ class BenchOMatic():
             ver = 'latest'
             ver = browser['version'] if 'version' in browser else 'latest'
             self.driver = webdriver.Chrome(options=options, service=Service(ChromeDriverManager(version=ver).install()))
+            self.driver.execute_cdp_cmd(
+                'Runtime.setMaxCallStackSizeToCapture',
+                 dict(size=0))
         elif browser['type'] == 'Safari':
             if 'driver' in browser:
                 from selenium.webdriver.safari.options import Options
@@ -173,7 +210,7 @@ class BenchOMatic():
             result = self.driver.execute_script(benchmark['result'])
         except Exception:
             pass
-        print('    {}: {}'.format(self.current_browser, result))
+        print('    {}: {}'.format(self.current_browser, result[0] if isinstance(result, list) else result))
 
         # Save the screnshot
         file_path = self.bench_root + '{}-{}.png'.format(self.current_benchmark.replace(' ', ''), self.current_browser)
