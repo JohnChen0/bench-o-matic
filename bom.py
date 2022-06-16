@@ -14,6 +14,7 @@ class BenchOMatic():
     """Automate browserbench.org testing across browsers using webdriver"""
     def __init__(self, options):
         self.runs = options.runs
+        self.full_speedometer2_score = options.full_speedometer2_score
         self.driver = None
         self.detect_browsers()
         self.current_browser = None
@@ -21,46 +22,68 @@ class BenchOMatic():
         self.root_path = os.path.abspath(os.path.dirname(__file__))
         self.bench_root = os.path.join(self.root_path, datetime.now().strftime('%Y%m%d-%H%M%S-'))
         self.run_timestamp = None
-        self.benchmarks = {
-            'Speedometer 2.0': {
-                'url': 'https://browserbench.org/Speedometer2.0/',
-                'start': 'startTest();',
-                'done': "return (document.getElementById('results-with-statistics') && document.getElementById('results-with-statistics').innerText.length > 0);",
-                'result': "return [parseInt(document.getElementById('result-number').innerText), benchmarkClient._measuredValuesList];",
-                'suites': [
-                    'Angular2-TypeScript-TodoMVC',
-                    'AngularJS-TodoMVC',
-                    'BackboneJS-TodoMVC',
-                    'Elm-TodoMVC',
-                    'EmberJS-Debug-TodoMVC',
-                    'EmberJS-TodoMVC',
-                    'Flight-TodoMVC',
-                    'Inferno-TodoMVC',
-                    'Preact-TodoMVC',
-                    'React-Redux-TodoMVC',
-                    'React-TodoMVC',
-                    'Vanilla-ES2015-Babel-Webpack-TodoMVC',
-                    'Vanilla-ES2015-TodoMVC',
-                    'VanillaJS-TodoMVC',
-                    'VueJS-TodoMVC',
-                    'jQuery-TodoMVC',
-                ],
-                'suite_result':
-                    lambda results, suite: sum([20000 / r['tests'][suite]['total'] for r in results[1]]) / len(results[1]),
-            },
-            'MotionMark 1.2': {
-                'url': 'https://browserbench.org/MotionMark1.2/',
-                'start': 'benchmarkController.startBenchmark();',
-                'done': "return (document.querySelector('#results>.body>.score-container>.score').innerText.length > 0);",
-                'result': "return parseFloat(document.querySelector('#results>.body>.score-container>.score').innerText);"
-            },
-            'JetStream 2': {
-                'url': 'https://browserbench.org/JetStream/',
-                'start': 'JetStream.start();',
-                'done': "return (document.querySelectorAll('#result-summary>.score').length > 0);",
-                'result': "return parseFloat(document.querySelector('#result-summary>.score').innerText);"
+        if self.full_speedometer2_score == True:
+            self.benchmarks = {
+                'Speedometer 2.0': {
+                    'url': 'https://browserbench.org/Speedometer2.0/',
+                    'start': 'startTest();',
+                    'done': "return (document.getElementById('results-with-statistics') && document.getElementById('results-with-statistics').innerText.length > 0);",
+                    'result': "return parseInt(document.getElementById('result-number').innerText);"
+                },
+                'MotionMark 1.2': {
+                    'url': 'https://browserbench.org/MotionMark1.2/',
+                    'start': 'benchmarkController.startBenchmark();',
+                    'done': "return (document.querySelector('#results>.body>.score-container>.score').innerText.length > 0);",
+                    'result': "return parseFloat(document.querySelector('#results>.body>.score-container>.score').innerText);"
+                },
+                'JetStream 2': {
+                    'url': 'https://browserbench.org/JetStream/',
+                    'start': 'JetStream.start();',
+                    'done': "return (document.querySelectorAll('#result-summary>.score').length > 0);",
+                    'result': "return parseFloat(document.querySelector('#result-summary>.score').innerText);"
+                }
             }
-        }
+        else:
+            self.benchmarks = {
+                'Speedometer 2.0': {
+                    'url': 'https://browserbench.org/Speedometer2.0/',
+                    'start': 'startTest();',
+                    'done': "return (document.getElementById('results-with-statistics') && document.getElementById('results-with-statistics').innerText.length > 0);",
+                    'result': "return [parseInt(document.getElementById('result-number').innerText), benchmarkClient._measuredValuesList];",
+                    'suites': [
+                        'Angular2-TypeScript-TodoMVC',
+                        'AngularJS-TodoMVC',
+                        'BackboneJS-TodoMVC',
+                        'Elm-TodoMVC',
+                        'EmberJS-Debug-TodoMVC',
+                        'EmberJS-TodoMVC',
+                        'Flight-TodoMVC',
+                        'Inferno-TodoMVC',
+                        'Preact-TodoMVC',
+                        'React-Redux-TodoMVC',
+                        'React-TodoMVC',
+                        'Vanilla-ES2015-Babel-Webpack-TodoMVC',
+                        'Vanilla-ES2015-TodoMVC',
+                        'VanillaJS-TodoMVC',
+                        'VueJS-TodoMVC',
+                        'jQuery-TodoMVC',
+                    ],
+                    'suite_result':
+                        lambda results, suite: sum([20000 / r['tests'][suite]['total'] for r in results[1]]) / len(results[1]),
+                },
+                'MotionMark 1.2': {
+                    'url': 'https://browserbench.org/MotionMark1.2/',
+                    'start': 'benchmarkController.startBenchmark();',
+                    'done': "return (document.querySelector('#results>.body>.score-container>.score').innerText.length > 0);",
+                    'result': "return parseFloat(document.querySelector('#results>.body>.score-container>.score').innerText);"
+                },
+                'JetStream 2': {
+                    'url': 'https://browserbench.org/JetStream/',
+                    'start': 'JetStream.start();',
+                    'done': "return (document.querySelectorAll('#result-summary>.score').length > 0);",
+                    'result': "return parseFloat(document.querySelector('#result-summary>.score').innerText);"
+                }
+            }
 
     def run(self):
         """Run the requested tests"""
@@ -70,19 +93,28 @@ class BenchOMatic():
         # Initialize the CSV result files with a header
         for benchmark_name in benchmark_names:
             csv_file = self.bench_root + benchmark_name.replace(' ', '') + '.csv'
-            with open(csv_file, 'wt') as f:
-                f.write('Run')
-                display_names = []
-                for browser_name in browser_names:
-                    if 'version' in self.browsers[browser_name]:
-                        browser_name += ' ' + self.browsers[browser_name]['version']
-                    display_names.append(browser_name)
-                    f.write(',{}'.format(browser_name))
-                if 'suites' in self.benchmarks[benchmark_name]:
-                    for suite in self.benchmarks[benchmark_name]['suites']:
-                        for browser_name in display_names:
-                            f.write(',{} {}'.format(browser_name, suite))
-                f.write('\n')
+            if self.full_speedometer2_score == False:
+                with open(csv_file, 'wt') as f:
+                    f.write('Run')
+                    display_names = []
+                    for browser_name in browser_names:
+                        if 'version' in self.browsers[browser_name]:
+                            browser_name += ' ' + self.browsers[browser_name]['version']
+                        display_names.append(browser_name)
+                        f.write(',{}'.format(browser_name))
+                    if 'suites' in self.benchmarks[benchmark_name]:
+                        for suite in self.benchmarks[benchmark_name]['suites']:
+                            for browser_name in display_names:
+                                f.write(',{} {}'.format(browser_name, suite))
+                    f.write('\n')
+            else:
+                with open(csv_file, 'wt') as f:
+                    f.write('Run')
+                    for browser_name in browser_names:
+                        if 'version' in self.browsers[browser_name]:
+                            browser_name += ' ' + self.browsers[browser_name]['version']
+                        f.write(',{}'.format(browser_name))
+                    f.write('\n')
 
         for run in range(self.runs):
             self.run_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -118,19 +150,26 @@ class BenchOMatic():
 
                 # Write the results for each run as they complete
                 csv_file = self.bench_root + benchmark_name.replace(' ', '') + '.csv'
-                with open(csv_file, 'at') as f:
-                    f.write(self.run_timestamp)
-                    for browser_name in browser_names:
-                        result = results[browser_name] if browser_name in results else ''
-                        f.write(',{}'.format(result[0] if isinstance(result, list) else result))
-                    if 'suites' in benchmark:
-                        for suite in benchmark['suites']:
-                            for browser_name in browser_names:
-                                if browser_name in results:
-                                    f.write(',{}'.format(benchmark['suite_result'](results[browser_name], suite)))
-                                else:
-                                    f.write(',')
-                    f.write('\n')
+                if self.full_speedometer2_score == False:
+                    with open(csv_file, 'at') as f:
+                        f.write(self.run_timestamp)
+                        for browser_name in browser_names:
+                            result = results[browser_name] if browser_name in results else ''
+                            f.write(',{}'.format(result[0] if isinstance(result, list) else result))
+                        if 'suites' in benchmark:
+                            for suite in benchmark['suites']:
+                                for browser_name in browser_names:
+                                    if browser_name in results:
+                                        f.write(',{}'.format(benchmark['suite_result'](results[browser_name], suite)))
+                                    else:
+                                        f.write(',')
+                        f.write('\n')
+                else:
+                    with open(csv_file, 'at') as f:
+                        f.write(self.run_timestamp)
+                        for browser_name in browser_names:
+                            f.write(',{}'.format(results[browser_name] if browser_name in results else ''))
+                        f.write('\n')
 
     def launch_browser(self, browser):
         """Launch the selected browser"""
@@ -148,6 +187,15 @@ class BenchOMatic():
             self.driver.execute_cdp_cmd(
                 'Runtime.setMaxCallStackSizeToCapture',
                  dict(size=0))
+        elif browser['type'] == 'Edge':
+            from selenium.webdriver.edge.options import Options
+            from selenium.webdriver.edge.service import Service
+            os.environ['WDM_LOG'] = '0'
+            options = Options()
+            options.binary_location = browser['exe']
+            ver = 'latest'
+            ver = browser['vesion'] if 'version' in browser else 'latest'
+            self.driver = webdriver.Edge(options = options, service=Service(EdgeChromiumDriverManager(version=ver).install()))
         elif browser['type'] == 'Safari':
             if 'driver' in browser:
                 from selenium.webdriver.safari.options import Options
@@ -296,11 +344,11 @@ class BenchOMatic():
                     if os.path.isfile(edge_path):
                         browser_name = 'Microsoft {0} (Chromium)'.format(channel)
                         if browser_name not in browsers:
-                            browsers[browser_name] = {'exe': edge_path, 'type': 'Chrome'}
+                            browsers[browser_name] = {'exe': edge_path, 'type': 'Edge'}
             if local_appdata is not None:
                 edge_path = os.path.join(local_appdata, 'Microsoft', 'Edge SxS', 'Application', 'msedge.exe')
                 if os.path.isfile(edge_path):
-                    browsers['Microsoft Edge Canary (Chromium)'] = {'exe': edge_path, 'type': 'Chrome'}
+                    browsers['Microsoft Edge Canary (Chromium)'] = {'exe': edge_path, 'type': 'Edge'}
             # Brave
             paths = [program_files, program_files_x86]
             for path in paths:
@@ -392,6 +440,7 @@ if '__main__' == __name__:
     parser.add_argument('-v', '--verbose', action='count',
                         help="Increase verbosity (specify multiple times for more). -vvvv for full debug output.")
     parser.add_argument('-r', '--runs', type=int, default=1, help='Number of runs.')
+    parser.add_argument('--full_speedometer2_score', default=False, type=lambda x: (str(x).lower() == 'true'))
     options, _ = parser.parse_known_args()
 
     # Set up logging
