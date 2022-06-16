@@ -190,6 +190,7 @@ class BenchOMatic():
         elif browser['type'] == 'Edge':
             from selenium.webdriver.edge.options import Options
             from selenium.webdriver.edge.service import Service
+            from webdriver_manager.microsoft import EdgeChromiumDriverManager
             os.environ['WDM_LOG'] = '0'
             options = Options()
             options.binary_location = browser['exe']
