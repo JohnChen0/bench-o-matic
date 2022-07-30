@@ -6,6 +6,7 @@ import psutil
 import random
 import subprocess
 import time
+import wmi
 from datetime import datetime
 from selenium import webdriver
 from time import monotonic
@@ -22,6 +23,7 @@ class BenchOMatic():
         self.root_path = os.path.abspath(os.path.dirname(__file__))
         self.bench_root = os.path.join(self.root_path, datetime.now().strftime('%Y%m%d-%H%M%S-'))
         self.run_timestamp = None
+        self.w = wmi.WMI(namespace="root\OpenHardwareMonitor")
         if self.full_speedometer2_score == True:
             self.benchmarks = {
                 'Speedometer 2.0': {
@@ -106,6 +108,7 @@ class BenchOMatic():
                         for suite in self.benchmarks[benchmark_name]['suites']:
                             for browser_name in display_names:
                                 f.write(',{} {}'.format(browser_name, suite))
+                    f.write(',temp_before_test, temp_after_test')
                     f.write('\n')
             else:
                 with open(csv_file, 'wt') as f:
@@ -114,21 +117,24 @@ class BenchOMatic():
                         if 'version' in self.browsers[browser_name]:
                             browser_name += ' ' + self.browsers[browser_name]['version']
                         f.write(',{}'.format(browser_name))
+                    f.write(',temp_before_test, temp_after_test')
                     f.write('\n')
 
-        for run in range(self.runs):
-            self.run_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            print('')
-            print('Run {}'.format(run + 1))
-            benchmarks = list(self.benchmarks.keys())
-            random.shuffle(benchmarks)
-            for benchmark_name in benchmarks:
+        
+        benchmarks = list(self.benchmarks.keys())
+        for benchmark_name in benchmarks:
+            for run in range(self.runs):
+                self.run_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                print('')
+                print('Run {}'.format(run + 1))
                 results = {}
                 self.current_benchmark = benchmark_name
                 benchmark = self.benchmarks[benchmark_name]
                 print('{}:'.format(benchmark_name))
                 browsers = list(self.browsers.keys())
                 random.shuffle(browsers)
+               # time.sleep(30)
+                temperature_before_test = self.get_current_temperature(before_testing=True)
                 for name in browsers:
                     browser = self.browsers[name]
                     browser['name'] = name
@@ -147,6 +153,8 @@ class BenchOMatic():
                     # Kill Safari manually since it doesn't like to go away cleanly
                     if name == 'Safari':
                         subprocess.call(['killall', 'Safari'])
+                    time.sleep(1200)
+                temperature_after_test = self.get_current_temperature(before_testing=False)
 
                 # Write the results for each run as they complete
                 csv_file = self.bench_root + benchmark_name.replace(' ', '') + '.csv'
@@ -163,13 +171,16 @@ class BenchOMatic():
                                         f.write(',{}'.format(benchmark['suite_result'](results[browser_name], suite)))
                                     else:
                                         f.write(',')
+                        f.write(',{}, {}'.format(temperature_before_test, temperature_after_test))
                         f.write('\n')
                 else:
                     with open(csv_file, 'at') as f:
                         f.write(self.run_timestamp)
                         for browser_name in browser_names:
                             f.write(',{}'.format(results[browser_name] if browser_name in results else ''))
+                        f.write(',{}, {}'.format(temperature_before_test, temperature_after_test))
                         f.write('\n')
+            time.sleep(1200)
 
     def launch_browser(self, browser):
         """Launch the selected browser"""
@@ -184,9 +195,9 @@ class BenchOMatic():
             ver = 'latest'
             ver = browser['version'] if 'version' in browser else 'latest'
             self.driver = webdriver.Chrome(options=options, service=Service(ChromeDriverManager(version=ver).install()))
-            self.driver.execute_cdp_cmd(
-                'Runtime.setMaxCallStackSizeToCapture',
-                 dict(size=0))
+           # self.driver.execute_cdp_cmd(
+           #     'Runtime.setMaxCallStackSizeToCapture',
+           #      dict(size=0))
         elif browser['type'] == 'Edge':
             from selenium.webdriver.edge.options import Options
             from selenium.webdriver.edge.service import Service
@@ -197,6 +208,9 @@ class BenchOMatic():
             ver = 'latest'
             ver = browser['vesion'] if 'version' in browser else 'latest'
             self.driver = webdriver.Edge(options = options, service=Service(EdgeChromiumDriverManager(version=ver).install()))
+           # self.driver.execute_cdp_cmd(
+           #     'Runtime.setMaxCallStackSizeToCapture',
+           #      dict(size=0))
         elif browser['type'] == 'Safari':
             if 'driver' in browser:
                 from selenium.webdriver.safari.options import Options
@@ -266,7 +280,16 @@ class BenchOMatic():
         self.driver.get_screenshot_as_file(file_path)
 
         return result
-
+ 
+    def get_current_temperature(self, before_testing=False):
+        temperature_infos = self.w.Sensor()
+        for sensor in temperature_infos:
+            if sensor.SensorType==u'Temperature':
+                if "Package" in sensor.Name:
+                    # print(sensor.Name)
+                    return sensor.Value
+        return "temp not available"
+  
     def wait_for_idle(self, timeout=30):
         """Wait for the system to go idle for at least 2 seconds"""
         logging.info("Waiting for Idle...")
