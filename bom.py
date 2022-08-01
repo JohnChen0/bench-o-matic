@@ -16,6 +16,7 @@ class BenchOMatic():
     def __init__(self, options):
         self.runs = options.runs
         self.full_speedometer2_score = options.full_speedometer2_score
+        self.sleep_interval = options.sleep_interval
         self.driver = None
         self.detect_browsers()
         self.current_browser = None
@@ -133,7 +134,7 @@ class BenchOMatic():
                 print('{}:'.format(benchmark_name))
                 browsers = list(self.browsers.keys())
                 random.shuffle(browsers)
-               # time.sleep(30)
+                time.sleep(self.sleep_interval)
                 temperature_before_test = self.get_current_temperature(before_testing=True)
                 for name in browsers:
                     browser = self.browsers[name]
@@ -153,7 +154,6 @@ class BenchOMatic():
                     # Kill Safari manually since it doesn't like to go away cleanly
                     if name == 'Safari':
                         subprocess.call(['killall', 'Safari'])
-                    time.sleep(1200)
                 temperature_after_test = self.get_current_temperature(before_testing=False)
 
                 # Write the results for each run as they complete
@@ -191,6 +191,8 @@ class BenchOMatic():
             from webdriver_manager.chrome import ChromeDriverManager
             os.environ['WDM_LOG'] = '0'
             options = Options()
+            # incognito mode
+            options.add_argument("--incognito")
             options.binary_location = browser['exe']
             ver = 'latest'
             ver = browser['version'] if 'version' in browser else 'latest'
@@ -204,6 +206,8 @@ class BenchOMatic():
             from webdriver_manager.microsoft import EdgeChromiumDriverManager
             os.environ['WDM_LOG'] = '0'
             options = Options()
+            # incognito mode
+            options.add_argument("-inprivate")
             options.binary_location = browser['exe']
             ver = 'latest'
             ver = browser['vesion'] if 'version' in browser else 'latest'
@@ -465,6 +469,7 @@ if '__main__' == __name__:
                         help="Increase verbosity (specify multiple times for more). -vvvv for full debug output.")
     parser.add_argument('-r', '--runs', type=int, default=1, help='Number of runs.')
     parser.add_argument('--full_speedometer2_score', default=False, type=lambda x: (str(x).lower() == 'true'))
+    parser.add_argument('--sleep_interval', type=int, default=30, help='Time.sleep() interval between pair of runs.')
     options, _ = parser.parse_known_args()
 
     # Set up logging

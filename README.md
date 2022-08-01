@@ -16,3 +16,6 @@ Also need to enable safaridriver support (once)
 ```
 sudo safaridriver --enable
 ```
+
+## Windows
+Example usage: C:\Users\windo\Documents\GitHub\bench-o-matic>python bom.py --runs 20 --full_speedometer2_score=True --sleep_interval=0 > log_test.txt
