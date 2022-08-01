@@ -17,6 +17,8 @@ class BenchOMatic():
         self.runs = options.runs
         self.full_speedometer2_score = options.full_speedometer2_score
         self.sleep_interval = options.sleep_interval
+        self.incognito = options.incognito
+        self.use_predefined_profile = options.use_predefined_profile
         self.driver = None
         self.detect_browsers()
         self.current_browser = None
@@ -185,6 +187,7 @@ class BenchOMatic():
     def launch_browser(self, browser):
         """Launch the selected browser"""
         logging.info('Launching {}...'.format(browser['name']))
+        plat = platform.system()
         if browser['type'] == 'Chrome':
             from selenium.webdriver.chrome.options import Options
             from selenium.webdriver.chrome.service import Service
@@ -192,14 +195,23 @@ class BenchOMatic():
             os.environ['WDM_LOG'] = '0'
             options = Options()
             # incognito mode
-            options.add_argument("--incognito")
+            if self.incognito:
+                options.add_argument("--incognito")
             options.binary_location = browser['exe']
             ver = 'latest'
             ver = browser['version'] if 'version' in browser else 'latest'
+            # Use specific chrome profile, ref link: https://stackoverflow.com/questions/52394408/how-to-use-chrome-profile-in-selenium-webdriver-python-3
+            # 1. Create a new profile via chrome browser
+            # 2. type chrome://version, check the path of the new profile
+            # 3. set the profile path
+            if self.use_predefined_profile:
+                options.add_argument(r"--user-data-dir=C:\Users\windo\AppData\Local\Google\Chrome\User Data") #e.g. C:\Users\You\AppData\Local\Google\Chrome\User Data
+                options.add_argument(r"--profile-directory=Profile 1") #e.g. Profile 1
             self.driver = webdriver.Chrome(options=options, service=Service(ChromeDriverManager(version=ver).install()))
-           # self.driver.execute_cdp_cmd(
-           #     'Runtime.setMaxCallStackSizeToCapture',
-           #      dict(size=0))
+            if plat == "Darwin":
+                self.driver.execute_cdp_cmd(
+                    'Runtime.setMaxCallStackSizeToCapture',
+                     dict(size=0))
         elif browser['type'] == 'Edge':
             from selenium.webdriver.edge.options import Options
             from selenium.webdriver.edge.service import Service
@@ -207,14 +219,19 @@ class BenchOMatic():
             os.environ['WDM_LOG'] = '0'
             options = Options()
             # incognito mode
-            options.add_argument("-inprivate")
+            if self.incognito:
+                options.add_argument("-inprivate")
             options.binary_location = browser['exe']
             ver = 'latest'
             ver = browser['vesion'] if 'version' in browser else 'latest'
+            # Use specific edge profile
+            # 1. Create a new profile via edge browser
+            # 2. type edge://version, check the path of the new profile
+            # 3. set the profile path
+            if self.use_predefined_profile:
+                options.add_argument(r"--user-data-dir=C:\Users\windo\AppData\Local\Microsoft\Edge\User Data")
+                options.add_argument(r"--profile-directory=Profile 2")
             self.driver = webdriver.Edge(options = options, service=Service(EdgeChromiumDriverManager(version=ver).install()))
-           # self.driver.execute_cdp_cmd(
-           #     'Runtime.setMaxCallStackSizeToCapture',
-           #      dict(size=0))
         elif browser['type'] == 'Safari':
             if 'driver' in browser:
                 from selenium.webdriver.safari.options import Options
@@ -468,7 +485,9 @@ if '__main__' == __name__:
     parser.add_argument('-v', '--verbose', action='count',
                         help="Increase verbosity (specify multiple times for more). -vvvv for full debug output.")
     parser.add_argument('-r', '--runs', type=int, default=1, help='Number of runs.')
-    parser.add_argument('--full_speedometer2_score', default=False, type=lambda x: (str(x).lower() == 'true'))
+    parser.add_argument('--full_speedometer2_score', default=True, type=lambda x: (str(x).lower() == 'true'))
+    parser.add_argument('--incognito', default=False, type=lambda x: (str(x).lower() == 'true'))
+    parser.add_argument('--use_predefined_profile', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--sleep_interval', type=int, default=30, help='Time.sleep() interval between pair of runs.')
     options, _ = parser.parse_known_args()
 
