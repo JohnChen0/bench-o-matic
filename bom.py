@@ -6,7 +6,6 @@ import psutil
 import random
 import subprocess
 import time
-import wmi
 from datetime import datetime
 from selenium import webdriver
 from time import monotonic
@@ -26,7 +25,10 @@ class BenchOMatic():
         self.root_path = os.path.abspath(os.path.dirname(__file__))
         self.bench_root = os.path.join(self.root_path, datetime.now().strftime('%Y%m%d-%H%M%S-'))
         self.run_timestamp = None
-        self.w = wmi.WMI(namespace="root\OpenHardwareMonitor")
+        self.plat = platform.system()
+        if self.plat == "Windows":
+            import wmi
+            self.w = wmi.WMI(namespace="root\OpenHardwareMonitor")
         if self.full_speedometer2_score == True:
             self.benchmarks = {
                 'Speedometer 2.0': {
@@ -137,7 +139,8 @@ class BenchOMatic():
                 browsers = list(self.browsers.keys())
                 random.shuffle(browsers)
                 time.sleep(self.sleep_interval)
-                temperature_before_test = self.get_current_temperature(before_testing=True)
+                if self.plat == "Windows":
+                    temperature_before_test = self.get_current_temperature(before_testing=True)
                 for name in browsers:
                     browser = self.browsers[name]
                     browser['name'] = name
@@ -156,7 +159,8 @@ class BenchOMatic():
                     # Kill Safari manually since it doesn't like to go away cleanly
                     if name == 'Safari':
                         subprocess.call(['killall', 'Safari'])
-                temperature_after_test = self.get_current_temperature(before_testing=False)
+                if self.plat == "Windows":
+                    temperature_after_test = self.get_current_temperature(before_testing=False)
 
                 # Write the results for each run as they complete
                 csv_file = self.bench_root + benchmark_name.replace(' ', '') + '.csv'
@@ -173,14 +177,16 @@ class BenchOMatic():
                                         f.write(',{}'.format(benchmark['suite_result'](results[browser_name], suite)))
                                     else:
                                         f.write(',')
-                        f.write(',{}, {}'.format(temperature_before_test, temperature_after_test))
+                        if self.plat == "Windows":
+                            f.write(',{}, {}'.format(temperature_before_test, temperature_after_test))
                         f.write('\n')
                 else:
                     with open(csv_file, 'at') as f:
                         f.write(self.run_timestamp)
                         for browser_name in browser_names:
                             f.write(',{}'.format(results[browser_name] if browser_name in results else ''))
-                        f.write(',{}, {}'.format(temperature_before_test, temperature_after_test))
+                        if self.plat == "Windows":
+                            f.write(',{}, {}'.format(temperature_before_test, temperature_after_test))
                         f.write('\n')
             time.sleep(1200)
 
