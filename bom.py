@@ -142,8 +142,6 @@ class BenchOMatic():
                 if self.plat == "Windows":
                     temperature_before_test = self.get_current_temperature(before_testing=True)
                 for name in browsers:
-                    if name.lower() == "chrome":
-                        continue
                     browser = self.browsers[name]
                     browser['name'] = name
                     self.current_browser = name
