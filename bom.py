@@ -4,6 +4,7 @@ import os
 import platform
 import psutil
 import random
+import shutil
 import subprocess
 import time
 from datetime import datetime
@@ -100,7 +101,7 @@ class BenchOMatic():
         # Initialize the CSV result files with a header
         for benchmark_name in benchmark_names:
             csv_file = self.bench_root + benchmark_name.replace(' ', '') + '.csv'
-            if self.full_speedometer2_score == False:
+            if not self.full_speedometer2_score:
                 with open(csv_file, 'wt') as f:
                     f.write('Run')
                     display_names = []
@@ -125,7 +126,6 @@ class BenchOMatic():
                     f.write(',temp_before_test, temp_after_test')
                     f.write('\n')
 
-        
         benchmarks = list(self.benchmarks.keys())
         for benchmark_name in benchmarks:
             for run in range(self.runs):
@@ -142,6 +142,8 @@ class BenchOMatic():
                 if self.plat == "Windows":
                     temperature_before_test = self.get_current_temperature(before_testing=True)
                 for name in browsers:
+                    if name.lower() == "chrome":
+                        continue
                     browser = self.browsers[name]
                     browser['name'] = name
                     self.current_browser = name
@@ -164,7 +166,7 @@ class BenchOMatic():
 
                 # Write the results for each run as they complete
                 csv_file = self.bench_root + benchmark_name.replace(' ', '') + '.csv'
-                if self.full_speedometer2_score == False:
+                if not self.full_speedometer2_score:
                     with open(csv_file, 'at') as f:
                         f.write(self.run_timestamp)
                         for browser_name in browser_names:
@@ -206,14 +208,28 @@ class BenchOMatic():
             options.binary_location = browser['exe']
             ver = 'latest'
             ver = browser['version'] if 'version' in browser else 'latest'
-            # Use specific chrome profile, ref link: https://stackoverflow.com/questions/52394408/how-to-use-chrome-profile-in-selenium-webdriver-python-3
-            # 1. Create a new profile via chrome browser
-            # 2. type chrome://version, check the path of the new profile
-            # 3. set the profile path
+            # Use predefined chrome profile
+            # 1. Create a new folder as the --user-data-dir
+            # 2. start chrome with special option:
+            # options.add_experimental_option("excludeSwitches", ["disable-background-networking"])
+            # 3. wait 10 seconds
+            # 4. shut down chrome
+            # 5. start chrome with the same user directory created in #1
             if self.use_predefined_profile:
-                options.add_argument(r"--user-data-dir=C:\Users\windo\AppData\Local\Google\Chrome\User Data") #e.g. C:\Users\You\AppData\Local\Google\Chrome\User Data
-                options.add_argument(r"--profile-directory=Profile 1") #e.g. Profile 1
-            self.driver = webdriver.Chrome(options=options, service=Service(ChromeDriverManager(version=ver).install()))
+                cur_dir = os.getcwd()
+                # Create an empty profile directory
+                profile_dir = os.path.join(cur_dir, "Default")
+                if os.path.exists(profile_dir):
+                    shutil.rmtree(profile_dir, ignore_errors=True)
+                os.makedirs(profile_dir)
+                options.add_argument(r"--user-data-dir={}".format(profile_dir))
+                options.add_experimental_option("excludeSwitches", ['disable-background-networking'])
+                self.driver = webdriver.Chrome(options=options,
+                                               service=Service(ChromeDriverManager(version=ver).install()))
+                time.sleep(10)
+                self.driver.quit()
+            self.driver = webdriver.Chrome(options=options,
+                                               service=Service(ChromeDriverManager(version=ver).install()))
             if plat == "Darwin":
                 self.driver.execute_cdp_cmd(
                     'Runtime.setMaxCallStackSizeToCapture',
@@ -228,16 +244,29 @@ class BenchOMatic():
             if self.incognito:
                 options.add_argument("-inprivate")
             options.binary_location = browser['exe']
-            ver = 'latest'
             ver = browser['vesion'] if 'version' in browser else 'latest'
-            # Use specific edge profile
-            # 1. Create a new profile via edge browser
-            # 2. type edge://version, check the path of the new profile
-            # 3. set the profile path
+            # Use predefined edge profile
+            # 1. Create a new folder as the --user-data-dir
+            # 2. start edge with special option:
+            # options.add_experimental_option("excludeSwitches", ["disable-background-networking"])
+            # 3. wait 10 seconds
+            # 4. shut down chrome
+            # 5. start edge with the same user directory created in #1
             if self.use_predefined_profile:
-                options.add_argument(r"--user-data-dir=C:\Users\windo\AppData\Local\Microsoft\Edge\User Data")
-                options.add_argument(r"--profile-directory=Profile 2")
-            self.driver = webdriver.Edge(options = options, service=Service(EdgeChromiumDriverManager(version=ver).install()))
+                cur_dir = os.getcwd()
+                # Create an empty profile directory
+                profile_dir = os.path.join(cur_dir, "Default")
+                if os.path.exists(profile_dir):
+                    shutil.rmtree(profile_dir, ignore_errors=True)
+                os.makedirs(profile_dir)
+                options.add_argument(r"--user-data-dir={}".format(profile_dir))
+                options.add_experimental_option("excludeSwitches", ['disable-background-networking'])
+                self.driver = webdriver.Edge(options=options,
+                                             service=Service(EdgeChromiumDriverManager(version=ver).install()))
+                time.sleep(10)
+                self.driver.quit()
+            self.driver = webdriver.Edge(options=options,
+                                         service=Service(EdgeChromiumDriverManager(version=ver).install()))
         elif browser['type'] == 'Safari':
             if 'driver' in browser:
                 from selenium.webdriver.safari.options import Options
