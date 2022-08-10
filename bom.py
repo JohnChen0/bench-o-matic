@@ -19,6 +19,7 @@ class BenchOMatic():
         self.sleep_interval = options.sleep_interval
         self.incognito = options.incognito
         self.use_predefined_profile = options.use_predefined_profile
+        self.use_randomized_finch_flag = options.use_randomized_finch_flag
         self.driver = None
         self.detect_browsers()
         self.current_browser = None
@@ -206,14 +207,14 @@ class BenchOMatic():
             options.binary_location = browser['exe']
             ver = 'latest'
             ver = browser['version'] if 'version' in browser else 'latest'
-            # Use predefined chrome profile
+            # Use randomized finch flag
             # 1. Create a new folder as the --user-data-dir
             # 2. start chrome with special option:
             # options.add_experimental_option("excludeSwitches", ["disable-background-networking"])
             # 3. wait 10 seconds
             # 4. shut down chrome
             # 5. start chrome with the same user directory created in #1
-            if self.use_predefined_profile:
+            if self.use_randomized_finch_flag:
                 cur_dir = os.getcwd()
                 # Create an empty profile directory
                 profile_dir = os.path.join(cur_dir, "Default")
@@ -226,6 +227,9 @@ class BenchOMatic():
                                                service=Service(ChromeDriverManager(version=ver).install()))
                 time.sleep(10)
                 self.driver.quit()
+            elif self.use_predefined_profile:
+                options.add_argument(r"--user-data-dir=C:\Users\windo\AppData\Local\Google\Chrome\User Data") #e.g. C:\Users\You\AppData\Local\Google\Chrome\User Data
+                options.add_argument(r"--profile-directory=Profile 1") #e.g. Profile 1
             self.driver = webdriver.Chrome(options=options,
                                                service=Service(ChromeDriverManager(version=ver).install()))
             if plat == "Darwin":
@@ -243,14 +247,14 @@ class BenchOMatic():
                 options.add_argument("-inprivate")
             options.binary_location = browser['exe']
             ver = browser['vesion'] if 'version' in browser else 'latest'
-            # Use predefined edge profile
+            # Use randomized finch flag
             # 1. Create a new folder as the --user-data-dir
             # 2. start edge with special option:
             # options.add_experimental_option("excludeSwitches", ["disable-background-networking"])
             # 3. wait 10 seconds
             # 4. shut down chrome
             # 5. start edge with the same user directory created in #1
-            if self.use_predefined_profile:
+            if self.use_randomized_finch_flag:
                 cur_dir = os.getcwd()
                 # Create an empty profile directory
                 profile_dir = os.path.join(cur_dir, "Default")
@@ -263,6 +267,9 @@ class BenchOMatic():
                                              service=Service(EdgeChromiumDriverManager(version=ver).install()))
                 time.sleep(10)
                 self.driver.quit()
+            elif self.use_predefined_profile:
+                options.add_argument(r"--user-data-dir=C:\Users\windo\AppData\Local\Microsoft\Edge\User Data")
+                options.add_argument(r"--profile-directory=Profile 2")
             self.driver = webdriver.Edge(options=options,
                                          service=Service(EdgeChromiumDriverManager(version=ver).install()))
         elif browser['type'] == 'Safari':
@@ -521,6 +528,7 @@ if '__main__' == __name__:
     parser.add_argument('--full_speedometer2_score', default=True, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--incognito', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--use_predefined_profile', default=False, type=lambda x: (str(x).lower() == 'true'))
+    parser.add_argument('--use_randomized_finch_flag', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--sleep_interval', type=int, default=30, help='Time.sleep() interval between pair of runs.')
     options, _ = parser.parse_known_args()
 

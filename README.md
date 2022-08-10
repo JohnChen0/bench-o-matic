@@ -7,6 +7,7 @@ Params:
 * `--incognito`: Use incognito mode or not, default value set to False. i.e. `python3 bom.py --incognito=True`
 * `--use_predefined_profile`: Use predefined profile or not, default value set to False. If not, the webdriver will create a new profile instead. i.e. `python3 bom.py --use_predefined_profile=True`
 * `--sleep_interval`: Sleep interval between each pair of test, default value set to 30. i.e. `python3 bom.py --sleep_interval=60`
+* `--use_randomized_finch_flag`: Use randomized finch flag or not, default value set to False. i.e. `python3 bom.py --use_randomized_finch_flag=True`
 
 ## MacOS
 Requires Python 3 native to the system CPU architecture (MacOS 12.3.1+ recommended).
