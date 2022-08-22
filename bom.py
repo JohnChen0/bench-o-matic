@@ -11,6 +11,12 @@ from datetime import datetime
 from selenium import webdriver
 from time import monotonic
 
+
+CHROME_USER_DATA_DIR = r"/Users/chromecbb/Library/Application Support/Google/Chrome"
+CHROME_PROFILE = "Profile 1"
+EDGE_USER_DATA_DIR = r"C:\Users\windo\AppData\Local\Microsoft\Edge\User Data"
+EDGE_PROFILE = "Profile 2"
+
 class BenchOMatic():
     """Automate browserbench.org testing across browsers using webdriver"""
     def __init__(self, options):
@@ -228,8 +234,8 @@ class BenchOMatic():
                 time.sleep(10)
                 self.driver.quit()
             elif self.use_predefined_profile:
-                options.add_argument(r"--user-data-dir=C:\Users\windo\AppData\Local\Google\Chrome\User Data") #e.g. C:\Users\You\AppData\Local\Google\Chrome\User Data
-                options.add_argument(r"--profile-directory=Profile 1") #e.g. Profile 1
+                options.add_argument(r"--user-data-dir={}".format(CHROME_USER_DATA_DIR))
+                options.add_argument(r"--profile-directory={}".format(CHROME_PROFILE))
             self.driver = webdriver.Chrome(options=options,
                                                service=Service(ChromeDriverManager(version=ver).install()))
             if plat == "Darwin":
@@ -268,8 +274,8 @@ class BenchOMatic():
                 time.sleep(10)
                 self.driver.quit()
             elif self.use_predefined_profile:
-                options.add_argument(r"--user-data-dir=C:\Users\windo\AppData\Local\Microsoft\Edge\User Data")
-                options.add_argument(r"--profile-directory=Profile 2")
+                options.add_argument(r"--user-data-dir={}".format(EDGE_USER_DATA_DIR))
+                options.add_argument(r"--profile-directory={}".format(EDGE_PROFILE))
             self.driver = webdriver.Edge(options=options,
                                          service=Service(EdgeChromiumDriverManager(version=ver).install()))
         elif browser['type'] == 'Safari':
