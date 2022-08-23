@@ -34,6 +34,22 @@ class BenchOMatic():
         self.bench_root = os.path.join(self.root_path, datetime.now().strftime('%Y%m%d-%H%M%S-'))
         self.run_timestamp = None
         self.plat = platform.system()
+        if self.full_speedometer2_score:
+            print('Record speedometer2 score')
+        else:
+            print('Record detailed speedometer2 score')
+        if self.use_predefined_profile:
+            print('Use predefined user profile')
+        else:
+            print('Not use predefined user profile')
+        if self.use_randomized_finch_flag:
+            print('Use randomized finch flag')
+        else:
+            print('Not use randomized finch flag')
+        if self.incognito:
+            print('Use incognito mode')
+        else:
+            print('Not use incognito mode')
         if self.plat == "Windows":
             import wmi
             self.w = wmi.WMI(namespace="root\OpenHardwareMonitor")
