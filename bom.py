@@ -34,22 +34,6 @@ class BenchOMatic():
         self.bench_root = os.path.join(self.root_path, datetime.now().strftime('%Y%m%d-%H%M%S-'))
         self.run_timestamp = None
         self.plat = platform.system()
-        if self.full_speedometer2_score:
-            print('Record speedometer2 score')
-        else:
-            print('Record detailed speedometer2 score')
-        if self.use_predefined_profile:
-            print('Use predefined user profile')
-        else:
-            print('Not use predefined user profile')
-        if self.use_randomized_finch_flag:
-            print('Use randomized finch flag')
-        else:
-            print('Not use randomized finch flag')
-        if self.incognito:
-            print('Use incognito mode')
-        else:
-            print('Not use incognito mode')
         if self.plat == "Windows":
             import wmi
             self.w = wmi.WMI(namespace="root\OpenHardwareMonitor")
@@ -117,6 +101,23 @@ class BenchOMatic():
             }
 
     def run(self):
+        if self.full_speedometer2_score:
+            print('Record speedometer2 score')
+        else:
+            print('Record detailed speedometer2 score')
+        if self.use_predefined_profile:
+            print('Use predefined user profile')
+        else:
+            print('Not use predefined user profile')
+        if self.use_randomized_finch_flag:
+            print('Use randomized finch flag')
+        else:
+            print('Not use randomized finch flag')
+        if self.incognito:
+            print('Use incognito mode')
+        else:
+            print('Not use incognito mode')
+
         """Run the requested tests"""
         benchmark_names = list(self.benchmarks.keys())
         browser_names = list(self.browsers.keys())
@@ -359,7 +360,7 @@ class BenchOMatic():
         print('    {}: {}'.format(self.current_browser, result[0] if isinstance(result, list) else result))
 
         # Save the screnshot
-        file_path = self.bench_root + '{}-{}.png'.format(self.current_benchmark.replace(' ', ''), self.current_browser)
+        file_path = self.bench_root + '{}-{}-{}.png'.format(self.current_benchmark.replace(' ', ''), self.current_browser, self.run_timestamp)
         self.driver.get_screenshot_as_file(file_path)
 
         return result
