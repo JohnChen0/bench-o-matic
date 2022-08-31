@@ -23,6 +23,7 @@ class BenchOMatic():
         self.runs = options.runs
         self.full_speedometer2_score = options.full_speedometer2_score
         self.sleep_interval = options.sleep_interval
+        self.max_wait_time = options.max_wait_time
         self.incognito = options.incognito
         self.use_predefined_profile = options.use_predefined_profile
         self.use_randomized_finch_flag = options.use_randomized_finch_flag
@@ -339,7 +340,7 @@ class BenchOMatic():
 
         # Wait up to an hour for the benchmark to run
         done = False
-        end_time = monotonic() + 3600
+        end_time = monotonic() + self.max_wait_time
         while not done and monotonic() < end_time:
             try:
                 time.sleep(2)
@@ -553,6 +554,7 @@ if '__main__' == __name__:
     parser.add_argument('--use_predefined_profile', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--use_randomized_finch_flag', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--sleep_interval', type=int, default=30, help='Time.sleep() interval between pair of runs.')
+    parser.add_argument('--max_wait_time', type=int, default=1200, help='Maximum wait time for a benchmark to finish.')
     options, _ = parser.parse_known_args()
 
     # Set up logging
