@@ -153,10 +153,11 @@ class BenchOMatic():
 
         benchmarks = list(self.benchmarks.keys())
         for benchmark_name in benchmarks:
-            for run in range(self.runs):
+            cur_runs = 0
+            while cur_runs < self.runs:
                 self.run_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 print('')
-                print('Run {}'.format(run + 1))
+                print('Run {}'.format(cur_runs + 1))
                 results = {}
                 self.current_benchmark = benchmark_name
                 benchmark = self.benchmarks[benchmark_name]
@@ -164,6 +165,7 @@ class BenchOMatic():
                 browsers = list(self.browsers.keys())
                 random.shuffle(browsers)
                 time.sleep(self.sleep_interval)
+                run_benchmark_successful = False
                 if self.plat == "Windows":
                     temperature_before_test = self.get_current_temperature(before_testing=True)
                 for name in browsers:
@@ -172,7 +174,8 @@ class BenchOMatic():
                     self.current_browser = name
                     self.launch_browser(browser)
                     self.prepare_benchmark(benchmark)
-                    if self.run_benchmark(benchmark):
+                    run_benchmark_successful = self.run_benchmark(benchmark)
+                    if run_benchmark_successful:
                         results[name] = self.collect_result(benchmark)
                     else:
                         logging.info('Benchmark failed')
@@ -184,6 +187,10 @@ class BenchOMatic():
                     # Kill Safari manually since it doesn't like to go away cleanly
                     if name == 'Safari':
                         subprocess.call(['killall', 'Safari'])
+                    if not run_benchmark_successful:
+                        break
+                if not run_benchmark_successful:
+                    continue
                 if self.plat == "Windows":
                     temperature_after_test = self.get_current_temperature(before_testing=False)
 
@@ -213,6 +220,7 @@ class BenchOMatic():
                         if self.plat == "Windows":
                             f.write(',{}, {}'.format(temperature_before_test, temperature_after_test))
                         f.write('\n')
+                cur_runs += 1
             time.sleep(1200)
 
     def launch_browser(self, browser):
