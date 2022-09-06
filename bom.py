@@ -369,7 +369,7 @@ class BenchOMatic():
         print('    {}: {}'.format(self.current_browser, result[0] if isinstance(result, list) else result))
 
         # Save the screnshot
-        file_path = self.bench_root + '{}-{}-{}.png'.format(self.current_benchmark.replace(' ', ''), self.current_browser, self.run_timestamp)
+        file_path = self.bench_root + '{}-{}-{}.png'.format(self.current_benchmark.replace(' ', ''), self.current_browser, self.run_timestamp.replace(':', '').replace(' ', ''))
         self.driver.get_screenshot_as_file(file_path)
 
         return result
