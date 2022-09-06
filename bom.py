@@ -53,7 +53,7 @@ class BenchOMatic():
                     'result': "return parseFloat(document.querySelector('#results>.body>.score-container>.score').innerText);"
                 },
                 'JetStream 2': {
-                    'url': 'https://browserbench.org/JetStream/',
+                    'url': 'https://browserbench.org/JetStream2.0/',
                     'start': 'JetStream.start();',
                     'done': "return (document.querySelectorAll('#result-summary>.score').length > 0);",
                     'result': "return parseFloat(document.querySelector('#result-summary>.score').innerText);"
@@ -94,7 +94,7 @@ class BenchOMatic():
                     'result': "return parseFloat(document.querySelector('#results>.body>.score-container>.score').innerText);"
                 },
                 'JetStream 2': {
-                    'url': 'https://browserbench.org/JetStream/',
+                    'url': 'https://browserbench.org/JetStream2.0/',
                     'start': 'JetStream.start();',
                     'done': "return (document.querySelectorAll('#result-summary>.score').length > 0);",
                     'result': "return parseFloat(document.querySelector('#result-summary>.score').innerText);"
