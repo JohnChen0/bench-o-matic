@@ -153,7 +153,7 @@ class BenchOMatic():
 
         benchmarks = list(self.benchmarks.keys())
         for benchmark_name in benchmarks:
-            run_orders = self.get_run_order(self.browsers.keys())
+            run_orders = self.get_run_order(browser_names)
             print('Run order: {}'.format(run_orders))
             cur_runs = 0
             while cur_runs < self.runs:
@@ -362,11 +362,13 @@ class BenchOMatic():
         return done
         
     def get_run_order(self, browser_keys):
+        if len(browser_keys) != 2:
+            raise Exception('Expect two browsers for the paired testing, but got {}'.format(len(browser_keys)))
         # Runs that chrome will go first
-        chrome_first_runs = random.sample(range(2, 22), 10)
+        chrome_first_runs = random.sample(range(2, self.runs), (int)((self.runs-2)/2))
         chrome_first_runs.append(0)
         run_orders = []
-        for order in range(0, 22):
+        for order in range(0, self.runs):
             if order in chrome_first_runs:
                 run_order = self.get_chrome_run_first(browser_keys)
             else:
