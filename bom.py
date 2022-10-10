@@ -153,6 +153,8 @@ class BenchOMatic():
 
         benchmarks = list(self.benchmarks.keys())
         for benchmark_name in benchmarks:
+            run_orders = self.get_run_order(self.browsers.keys())
+            print('Run order: {}'.format(run_orders))
             cur_runs = 0
             while cur_runs < self.runs:
                 self.run_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -162,8 +164,8 @@ class BenchOMatic():
                 self.current_benchmark = benchmark_name
                 benchmark = self.benchmarks[benchmark_name]
                 print('{}:'.format(benchmark_name))
-                browsers = list(self.browsers.keys())
-                random.shuffle(browsers)
+                browsers = run_orders[cur_runs]
+                print('browser run order {}'.format(browsers))
                 time.sleep(self.sleep_interval)
                 run_benchmark_successful = False
                 if self.plat == "Windows":
@@ -222,7 +224,7 @@ class BenchOMatic():
                         f.write('\n')
                 cur_runs += 1
             time.sleep(1200)
-
+        
     def launch_browser(self, browser):
         """Launch the selected browser"""
         logging.info('Launching {}...'.format(browser['name']))
@@ -358,7 +360,36 @@ class BenchOMatic():
             except Exception:
                 logging.exception('Error checking benchmark status')
         return done
+        
+    def get_run_order(self, browser_keys):
+        # Runs that chrome will go first
+        chrome_first_runs = random.sample(range(2, 22), 10)
+        chrome_first_runs.append(0)
+        run_orders = []
+        for order in range(0, 22):
+            if order in chrome_first_runs:
+                run_order = self.get_chrome_run_first(browser_keys)
+            else:
+                run_order = self.get_chrome_run_last(browser_keys)
+            run_orders.append(run_order)
+        return run_orders
+        
+    def get_chrome_run_first(self, browser_keys):
+        run_order = []
+        run_order.append('Chrome')
+        for key in browser_keys:
+            if key != 'Chrome':
+                run_order.append(key)
+        return run_order
     
+    def get_chrome_run_last(self, browser_keys):
+        run_order = []
+        for key in browser_keys:
+            if key != 'Chrome':
+                run_order.append(key)
+        run_order.append('Chrome')
+        return run_order
+            
     def collect_result(self, benchmark):
         """Collect the benchmark result"""
         result = ''
