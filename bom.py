@@ -365,7 +365,7 @@ class BenchOMatic():
         if len(browser_keys) != 2:
             raise Exception('Expect two browsers for the paired testing, but got {}'.format(len(browser_keys)))
         # Runs that chrome will go first
-        chrome_first_runs = random.sample(range(2, self.runs), (int)((self.runs-2)/2))
+        chrome_first_runs = random.sample(range(2, self.runs), int((self.runs-2)/2))
         chrome_first_runs.append(0)
         run_orders = []
         for order in range(0, self.runs):
