@@ -10,16 +10,42 @@ Params:
 * `--use_randomized_finch_flag`: Use randomized finch flag or not, default value set to False. i.e. `python3 bom.py --use_randomized_finch_flag=True`
 
 ## MacOS
+### Prequisites
 Requires Python 3 native to the system CPU architecture (MacOS 12.3.1+ recommended).
+Please also ensure Chrome browser and Safari browser are installed.
 
-```bash
-python3 -m pip install --upgrade pip
-python3 -m pip install selenium psutil webdriver-manager requests
-```
+Safari's WebDriver support for developers is turned off by default. Need to enable safaridriver support (once)
 
-Also need to enable safaridriver support (once)
 ```
 sudo safaridriver --enable
+```
+
+### Python Environment
+
+Python virtual environment is recommended. To set it up, open a terminal, changed to the `bench-o-matic` directory, then create the virtual environment:
+
+```bash
+python3 -m venv ./env
+```
+
+To activate the venv:
+
+```bash
+source ./env/bin/activate
+```
+
+Once the venv is activated, `python` should refer to `env/bin/python`. Then upgrade pip and install all dependencies.
+
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install --require-hashes -r requirements.txt
+```
+
+To deactivate venv:
+
+```bash
+deactivate
 ```
 
 ## Windows

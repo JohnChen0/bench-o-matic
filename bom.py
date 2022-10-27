@@ -264,8 +264,9 @@ class BenchOMatic():
             elif self.use_predefined_profile:
                 options.add_argument(r"--user-data-dir={}".format(CHROME_USER_DATA_DIR))
                 options.add_argument(r"--profile-directory={}".format(CHROME_PROFILE))
-            self.driver = webdriver.Chrome(options=options,
-                                               service=Service(ChromeDriverManager(version=ver).install()))
+            self.driver = webdriver.Chrome(options=options, executable_path="/Users/chromecbb/Downloads/chromedriver")
+            #self.driver = webdriver.Chrome(options=options,
+            #                                   service=Service(ChromeDriverManager(version=ver).install()))
             if plat == "Darwin":
                 self.driver.execute_cdp_cmd(
                     'Runtime.setMaxCallStackSizeToCapture',
