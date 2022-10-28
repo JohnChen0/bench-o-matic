@@ -12,8 +12,8 @@ from selenium import webdriver
 from time import monotonic
 
 
-CHROME_USER_DATA_DIR = r"/Users/chromecbb/Library/Application Support/Google/Chrome"
 CHROME_CANARY_USER_DATA_DIR = r"/Users/chromecbb/Library/Application Support/Google/Chrome Canary"
+CHROME_USER_DATA_DIR = r"C:\Users\windo\AppData\Local\Google\Chrome\User Data"
 CHROME_PROFILE = "Profile 1"
 EDGE_USER_DATA_DIR = r"C:\Users\windo\AppData\Local\Microsoft\Edge\User Data"
 EDGE_PROFILE = "Profile 2"
@@ -260,12 +260,14 @@ class BenchOMatic():
                 options.add_argument(r"--user-data-dir={}".format(profile_dir))
                 options.add_experimental_option("excludeSwitches", ['disable-background-networking'])
                 if self.compare_stable_browsers:
-                    self.driver = webdriver.Chrome(options=options,
-                                               service=Service(ChromeDriverManager(version=ver).install()))
+                   # self.driver = webdriver.Chrome(options=options,
+                   #                            service=Service(ChromeDriverManager(version=ver).install()))
+                     self.driver = webdriver.Chrome(options=options,
+                                               service=Service(r'C:\Users\windo\Downloads\chromedriver_win32\chromedriver'))
                 else:
                     # You need download latest chrome driver via: https://chromedriver.chromium.org/chromedriver-canary,
                     # and use the location for the Service(...) input.
-                    self.driver = webdriver.Chrome(options=options,
+                     self.driver = webdriver.Chrome(options=options,
                                                service=Service('/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/chromedriver'))
                 time.sleep(10)
                 self.driver.quit()
@@ -273,8 +275,10 @@ class BenchOMatic():
                 options.add_argument(r"--user-data-dir={}".format(CHROME_USER_DATA_DIR))
                 options.add_argument(r"--profile-directory={}".format(CHROME_PROFILE))
             if self.compare_stable_browsers:
+               # self.driver = webdriver.Chrome(options=options,
+               #                                service=Service(ChromeDriverManager(version=ver).install()))
                 self.driver = webdriver.Chrome(options=options,
-                                               service=Service(ChromeDriverManager(version=ver).install()))
+                                               service=Service(r'C:\Users\windo\Downloads\chromedriver_win32\chromedriver'))
             else:
                 # You need download latest chrome driver via: https://chromedriver.chromium.org/chromedriver-canary,
                 # and use the location for the Service(...) input.
@@ -311,15 +315,17 @@ class BenchOMatic():
                 os.makedirs(profile_dir)
                 options.add_argument(r"--user-data-dir={}".format(profile_dir))
                 options.add_experimental_option("excludeSwitches", ['disable-background-networking'])
-                self.driver = webdriver.Edge(options=options,
-                                             service=Service(EdgeChromiumDriverManager(version=ver).install()))
+                #self.driver = webdriver.Edge(options=options,
+                #                             service=Service(EdgeChromiumDriverManager(version=ver).install()))
+                self.driver = webdriver.Edge(options=options, service=Service(r'C:\Users\windo\Downloads\edgedriver_win64\msedgedriver'))
                 time.sleep(10)
                 self.driver.quit()
             elif self.use_predefined_profile:
                 options.add_argument(r"--user-data-dir={}".format(EDGE_USER_DATA_DIR))
                 options.add_argument(r"--profile-directory={}".format(EDGE_PROFILE))
-            self.driver = webdriver.Edge(options=options,
-                                         service=Service(EdgeChromiumDriverManager(version=ver).install()))
+            #self.driver = webdriver.Edge(options=options,
+            #                             service=Service(EdgeChromiumDriverManager(version=ver).install()))
+            self.driver = webdriver.Edge(options=options, service=Service(r'C:\Users\windo\Downloads\edgedriver_win64\msedgedriver'))
         elif browser['type'] == 'Safari':
             if 'driver' in browser:
                 from selenium.webdriver.safari.options import Options

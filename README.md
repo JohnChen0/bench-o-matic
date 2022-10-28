@@ -62,4 +62,28 @@ We used the WMI module (https://pypi.org/project/WMI/) + Open Hardware Monitor (
 To install wmi: pip install wmi
 To use Open Hardware Monior: download the software via https://openhardwaremonitor.org/downloads/.
 
+### Python Environment
+
+Python virtual environment is recommended. To set it up, open a command prompt, changed to the `bench-o-matic` directory, then create the virtual environment.
+
+Preparation for the Python virtual environment:
+
+```
+C:\Users\windo\AppData\Local\Programs\Python\Python310\python.exe -m pip install -U pip virtualenv
+```
+
+Create and activate the virtual environment:
+```
+virtualenv --system-site-packages -p python ./venv
+.\venv\Scripts\activate
+```
+
+Upgrade pip and install all dependencies.
+
+
+```
+python -m pip install --upgrade pip
+python -m pip install --require-hashes -r requirements.txt
+```
+
 Example usage: C:\Users\windo\Documents\GitHub\bench-o-matic>python bom.py --runs 2 --full_speedometer2_score=True --incognito=False --use_predefined_profile=True --sleep_interval=0 > log_test3.txt
