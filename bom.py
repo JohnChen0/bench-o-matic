@@ -173,8 +173,6 @@ class BenchOMatic():
                 if self.plat == "Windows":
                     temperature_before_test = self.get_current_temperature(before_testing=True)
                 for name in browsers:
-                    if 'Chrome' in name:
-                        continue
                     browser = self.browsers[name]
                     browser['name'] = name
                     self.current_browser = name
@@ -326,21 +324,11 @@ class BenchOMatic():
             if 'driver' in browser:
                 from selenium.webdriver.safari.options import Options
                 from selenium.webdriver.safari.service import Service
-               # from selenium.webdriver import DesiredCapabilities
                 options = Options()
-               # options.binary_location = browser['exe']
-                options.binary_location = browser['driver']
-               # options.set_capability('desired_capabilities', {'browserName': 'safari'})
-               # options.set_capability("firstMatch", [{"browserName":"safari"}])
                 options.use_technology_preview = True
-               # print('options.use_technology_preview: {}'.format(options.use_technology_preview))
-               # DesiredCapabilities.Safari['browerName'] = 'Safari Technology Preview'
-               # params = {}
-               # params['desired_capabilities'] = {'browserName': 'Safari Technology Preview'}
-               # params['executable_path'] = '/Applications/Safari Technology Preview.app/Contents/MacOS/Safari Technology Preview'
-                self.driver = webdriver.Safari(options=options)
-               # self.driver = webdriver.Safari(**params)
-               # self.driver = webdriver.Safari(service=Service(executable_path='/Applications/Safari Technology Preview.app/Contents/MacOS/safaridriver'))
+                capabilities = webdriver.DesiredCapabilities.SAFARI.copy()
+                capabilities['browserName'] = "Safari Technology Preview"
+                self.driver = webdriver.Safari(desired_capabilities=capabilities, options=options, service=Service(executable_path='/Applications/Safari Technology Preview.app/Contents/MacOS/safaridriver'))
             else:
                 self.driver = webdriver.Safari()
         elif browser['type'] == 'Firefox':
