@@ -12,8 +12,10 @@ from selenium import webdriver
 from time import monotonic
 
 
+CHROME_USER_DATA_DIR = r"/Users/chromecbb/Library/Application Support/Google/Chrome"
 CHROME_CANARY_USER_DATA_DIR = r"/Users/chromecbb/Library/Application Support/Google/Chrome Canary"
-CHROME_USER_DATA_DIR = r"C:\Users\windo\AppData\Local\Google\Chrome\User Data"
+# CHROME_USER_DATA_DIR = r"C:\Users\windo\AppData\Local\Google\Chrome\User Data" # for windows
+
 CHROME_PROFILE = "Profile 1"
 EDGE_USER_DATA_DIR = r"C:\Users\windo\AppData\Local\Microsoft\Edge\User Data"
 EDGE_PROFILE = "Profile 2"
@@ -262,12 +264,12 @@ class BenchOMatic():
                 if self.compare_stable_browsers:
                    # self.driver = webdriver.Chrome(options=options,
                    #                            service=Service(ChromeDriverManager(version=ver).install()))
-                     self.driver = webdriver.Chrome(options=options,
+                    self.driver = webdriver.Chrome(options=options,
                                                service=Service(r'C:\Users\windo\Downloads\chromedriver_win32\chromedriver'))
                 else:
                     # You need download latest chrome driver via: https://chromedriver.chromium.org/chromedriver-canary,
                     # and use the location for the Service(...) input.
-                     self.driver = webdriver.Chrome(options=options,
+                    self.driver = webdriver.Chrome(options=options,
                                                service=Service('/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/chromedriver'))
                 time.sleep(10)
                 self.driver.quit()
