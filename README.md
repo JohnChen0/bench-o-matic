@@ -86,4 +86,10 @@ python -m pip install --upgrade pip
 python -m pip install --require-hashes -r requirements.txt
 ```
 
+To deactivate venv:
+
+```
+deactivate
+```
+
 Example usage: C:\Users\windo\Documents\GitHub\bench-o-matic>python bom.py --runs 2 --full_speedometer2_score=True --incognito=False --use_predefined_profile=True --sleep_interval=0 > log_test3.txt
