@@ -13,6 +13,7 @@ from time import monotonic
 
 
 CHROME_USER_DATA_DIR = r"/Users/chromecbb/Library/Application Support/Google/Chrome"
+CHROME_CANARY_USER_DATA_DIR = r"/Users/chromecbb/Library/Application Support/Google/Chrome Canary"
 CHROME_PROFILE = "Profile 1"
 EDGE_USER_DATA_DIR = r"C:\Users\windo\AppData\Local\Microsoft\Edge\User Data"
 EDGE_PROFILE = "Profile 2"
@@ -27,6 +28,7 @@ class BenchOMatic():
         self.incognito = options.incognito
         self.use_predefined_profile = options.use_predefined_profile
         self.use_randomized_finch_flag = options.use_randomized_finch_flag
+        self.compare_stable_browsers = options.compare_stable_browsers
         self.driver = None
         self.detect_browsers()
         self.current_browser = None
@@ -171,6 +173,8 @@ class BenchOMatic():
                 if self.plat == "Windows":
                     temperature_before_test = self.get_current_temperature(before_testing=True)
                 for name in browsers:
+                    if 'Chrome' in name:
+                        continue
                     browser = self.browsers[name]
                     browser['name'] = name
                     self.current_browser = name
@@ -257,16 +261,27 @@ class BenchOMatic():
                 os.makedirs(profile_dir)
                 options.add_argument(r"--user-data-dir={}".format(profile_dir))
                 options.add_experimental_option("excludeSwitches", ['disable-background-networking'])
-                self.driver = webdriver.Chrome(options=options,
+                if self.compare_stable_browsers:
+                    self.driver = webdriver.Chrome(options=options,
                                                service=Service(ChromeDriverManager(version=ver).install()))
+                else:
+                    # You need download latest chrome driver via: https://chromedriver.chromium.org/chromedriver-canary,
+                    # and use the location for the Service(...) input.
+                    self.driver = webdriver.Chrome(options=options,
+                                               service=Service('/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/chromedriver'))
                 time.sleep(10)
                 self.driver.quit()
             elif self.use_predefined_profile:
                 options.add_argument(r"--user-data-dir={}".format(CHROME_USER_DATA_DIR))
                 options.add_argument(r"--profile-directory={}".format(CHROME_PROFILE))
-            self.driver = webdriver.Chrome(options=options, executable_path="/Users/chromecbb/Downloads/chromedriver")
-            #self.driver = webdriver.Chrome(options=options,
-            #                                   service=Service(ChromeDriverManager(version=ver).install()))
+            if self.compare_stable_browsers:
+                self.driver = webdriver.Chrome(options=options,
+                                               service=Service(ChromeDriverManager(version=ver).install()))
+            else:
+                # You need download latest chrome driver via: https://chromedriver.chromium.org/chromedriver-canary,
+                # and use the location for the Service(...) input.
+                self.driver = webdriver.Chrome(options=options,
+                                               service=Service('/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/chromedriver'))
             if plat == "Darwin":
                 self.driver.execute_cdp_cmd(
                     'Runtime.setMaxCallStackSizeToCapture',
@@ -310,10 +325,22 @@ class BenchOMatic():
         elif browser['type'] == 'Safari':
             if 'driver' in browser:
                 from selenium.webdriver.safari.options import Options
+                from selenium.webdriver.safari.service import Service
+               # from selenium.webdriver import DesiredCapabilities
                 options = Options()
-                options.binary_location = browser['exe']
+               # options.binary_location = browser['exe']
+                options.binary_location = browser['driver']
+               # options.set_capability('desired_capabilities', {'browserName': 'safari'})
+               # options.set_capability("firstMatch", [{"browserName":"safari"}])
                 options.use_technology_preview = True
+               # print('options.use_technology_preview: {}'.format(options.use_technology_preview))
+               # DesiredCapabilities.Safari['browerName'] = 'Safari Technology Preview'
+               # params = {}
+               # params['desired_capabilities'] = {'browserName': 'Safari Technology Preview'}
+               # params['executable_path'] = '/Applications/Safari Technology Preview.app/Contents/MacOS/Safari Technology Preview'
                 self.driver = webdriver.Safari(options=options)
+               # self.driver = webdriver.Safari(**params)
+               # self.driver = webdriver.Safari(service=Service(executable_path='/Applications/Safari Technology Preview.app/Contents/MacOS/safaridriver'))
             else:
                 self.driver = webdriver.Safari()
         elif browser['type'] == 'Firefox':
@@ -379,18 +406,22 @@ class BenchOMatic():
         
     def get_chrome_run_first(self, browser_keys):
         run_order = []
-        run_order.append('Chrome')
         for key in browser_keys:
-            if key != 'Chrome':
+            if 'Chrome' in key:
+                run_order.append(key)
+        for key in browser_keys:
+            if 'Chrome' not in key:
                 run_order.append(key)
         return run_order
     
     def get_chrome_run_last(self, browser_keys):
         run_order = []
         for key in browser_keys:
-            if key != 'Chrome':
+            if 'Chrome' not in key:
                 run_order.append(key)
-        run_order.append('Chrome')
+        for key in browser_keys:
+            if 'Chrome' in key:
+                run_order.append(key)
         return run_order
             
     def collect_result(self, benchmark):
@@ -543,24 +574,13 @@ class BenchOMatic():
                     browsers['Microsoft Edge Dev'] = {'exe': edge_path, 'type': 'Chrome'}
 
         elif plat == "Darwin":
-            chrome_path = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-            if 'Chrome' not in browsers and os.path.isfile(chrome_path):
-                browsers['Chrome'] = {'exe': chrome_path, 'type': 'Chrome'}
-            chrome_path = '/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta'
-            if 'Chrome Beta' not in browsers and os.path.isfile(chrome_path):
-                browsers['Chrome Beta'] = {'exe': chrome_path, 'type': 'Chrome'}
-            firefox_path = '/Applications/Firefox.app/Contents/MacOS/firefox'
-            if 'Firefox' not in browsers and os.path.isfile(firefox_path):
-                browsers['Firefox'] = {'exe': firefox_path, 'type': 'Firefox'}
-            safari_path = '/Applications/Safari.app/Contents/MacOS/Safari'
-            if 'Safari' not in browsers and os.path.isfile(safari_path):
-                browsers['Safari'] = {'exe': safari_path, 'type': 'Safari'}
-            """
-            safari_path = '/Applications/Safari Technology Preview.app/Contents/MacOS/Safari Technology Preview'
-            if 'Safari Technology Preview' not in browsers and os.path.isfile(safari_path):
-                browsers['Safari Technology Preview'] = {'exe': safari_path, 'type': 'Safari',
-                    'driver': '/Applications/Safari Technology Preview.app/Contents/MacOS/safaridriver'}
-            """
+            if self.compare_stable_browsers:
+                browsers = self.detect_browser('Google Chrome', 'Chrome', 'Chrome', browsers)
+                browsers = self.detect_browser('Safari', 'Safari', 'Safari', browsers)
+            else:
+                browsers = self.detect_browser('Google Chrome Canary', 'Chrome Canary', 'Chrome', browsers)
+                browsers = self.detect_browser('Safari Technology Preview', 'Safari Technology Preview', 'Safari', browsers)
+
             # Get the version of each
             import plistlib
             import re
@@ -585,6 +605,18 @@ class BenchOMatic():
             logging.info('%s: %s', browser, browsers[browser]['exe'])
         self.browsers = browsers
 
+    def detect_browser(self, app_name, browser_name, browser_type, browsers):
+        browser_path = '/Applications/{}.app/Contents/MacOS/{}'.format(app_name, app_name)
+        if browser_name not in browsers and os.path.isfile(browser_path):
+            if browser_name != 'Safari Technology Preview':
+                browsers[browser_name] = {'exe': browser_path, 'type': browser_type}
+            else:
+                browsers[browser_name] = {'exe': browser_path, 'type': browser_type, 'driver': '/Applications/Safari Technology Preview.app/Contents/MacOS/safaridriver'}
+        else:
+            logging.error('{} does not exist, please install it and put it in the following path: {}'.format(browser_name, browser_path))
+        return browsers
+
+
 if '__main__' == __name__:
     import argparse
     parser = argparse.ArgumentParser(description='Bench-o-matic', prog='bom')
@@ -597,6 +629,7 @@ if '__main__' == __name__:
     parser.add_argument('--use_randomized_finch_flag', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--sleep_interval', type=int, default=30, help='Time.sleep() interval between pair of runs.')
     parser.add_argument('--max_wait_time', type=int, default=1200, help='Maximum wait time for a benchmark to finish.')
+    parser.add_argument('--compare_stable_browsers', default=True, type=lambda x: (str(x).lower() == 'true'))
     options, _ = parser.parse_known_args()
 
     # Set up logging
