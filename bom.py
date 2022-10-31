@@ -45,7 +45,7 @@ class BenchOMatic():
         if self.full_speedometer2_score == True:
             self.benchmarks = {
                 'Speedometer 2.0': {
-                    'url': 'https://browserbench.org/Speedometer2.0/',
+                    'url': 'https://browserbench.org/Speedometer2.1/',
                     'start': 'startTest();',
                     'done': "return (document.getElementById('results-with-statistics') && document.getElementById('results-with-statistics').innerText.length > 0);",
                     'result': "return parseInt(document.getElementById('result-number').innerText);"
@@ -57,7 +57,7 @@ class BenchOMatic():
                     'result': "return parseFloat(document.querySelector('#results>.body>.score-container>.score').innerText);"
                 },
                 'JetStream 2': {
-                    'url': 'https://browserbench.org/JetStream2.0/',
+                    'url': 'https://browserbench.org/JetStream2.1/',
                     'start': 'JetStream.start();',
                     'done': "return (document.querySelectorAll('#result-summary>.score').length > 0);",
                     'result': "return parseFloat(document.querySelector('#result-summary>.score').innerText);"
@@ -66,7 +66,7 @@ class BenchOMatic():
         else:
             self.benchmarks = {
                 'Speedometer 2.0': {
-                    'url': 'https://browserbench.org/Speedometer2.0/',
+                    'url': 'https://browserbench.org/Speedometer2.1/',
                     'start': 'startTest();',
                     'done': "return (document.getElementById('results-with-statistics') && document.getElementById('results-with-statistics').innerText.length > 0);",
                     'result': "return [parseInt(document.getElementById('result-number').innerText), benchmarkClient._measuredValuesList];",
@@ -98,7 +98,7 @@ class BenchOMatic():
                     'result': "return parseFloat(document.querySelector('#results>.body>.score-container>.score').innerText);"
                 },
                 'JetStream 2': {
-                    'url': 'https://browserbench.org/JetStream2.0/',
+                    'url': 'https://browserbench.org/JetStream2.1/',
                     'start': 'JetStream.start();',
                     'done': "return (document.querySelectorAll('#result-summary>.score').length > 0);",
                     'result': "return parseFloat(document.querySelector('#result-summary>.score').innerText);"
