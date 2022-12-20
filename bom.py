@@ -260,32 +260,33 @@ class BenchOMatic():
                     shutil.rmtree(profile_dir, ignore_errors=True)
                 os.makedirs(profile_dir)
                 options.add_argument(r"--user-data-dir={}".format(profile_dir))
+                options.add_argument("--enable-field-trial-config")
                 options.add_experimental_option("excludeSwitches", ['disable-background-networking'])
                 if self.compare_stable_browsers:
-                   # self.driver = webdriver.Chrome(options=options,
-                   #                            service=Service(ChromeDriverManager(version=ver).install()))
                     self.driver = webdriver.Chrome(options=options,
-                                               service=Service(r'C:\Users\windo\Downloads\chromedriver_win32\chromedriver'))
+                                               service=Service(ChromeDriverManager(version=ver).install()))
+                   # self.driver = webdriver.Chrome(options=options,
+                   #                            service=Service(r'C:\Users\windo\Downloads\chromedriver_win32\chromedriver'))
                 else:
                     # You need download latest chrome driver via: https://chromedriver.chromium.org/chromedriver-canary,
                     # and use the location for the Service(...) input.
                     self.driver = webdriver.Chrome(options=options,
-                                               service=Service('/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/chromedriver'))
+                                               service=Service('/Users/yuanhuang/bench-o-matic/chromedriver'))
                 time.sleep(10)
                 self.driver.quit()
             elif self.use_predefined_profile:
                 options.add_argument(r"--user-data-dir={}".format(CHROME_USER_DATA_DIR))
                 options.add_argument(r"--profile-directory={}".format(CHROME_PROFILE))
             if self.compare_stable_browsers:
-               # self.driver = webdriver.Chrome(options=options,
-               #                                service=Service(ChromeDriverManager(version=ver).install()))
                 self.driver = webdriver.Chrome(options=options,
-                                               service=Service(r'C:\Users\windo\Downloads\chromedriver_win32\chromedriver'))
+                                               service=Service(ChromeDriverManager(version=ver).install()))
+               # self.driver = webdriver.Chrome(options=options,
+               #                                service=Service(r'C:\Users\windo\Downloads\chromedriver_win32\chromedriver'))
             else:
                 # You need download latest chrome driver via: https://chromedriver.chromium.org/chromedriver-canary,
                 # and use the location for the Service(...) input.
                 self.driver = webdriver.Chrome(options=options,
-                                               service=Service('/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/chromedriver'))
+                                               service=Service('/Users/yuanhuang/bench-o-matic/chromedriver'))
             if plat == "Darwin":
                 self.driver.execute_cdp_cmd(
                     'Runtime.setMaxCallStackSizeToCapture',
