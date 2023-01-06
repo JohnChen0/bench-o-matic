@@ -12,11 +12,15 @@ from selenium import webdriver
 from time import monotonic
 
 
-CHROME_USER_DATA_DIR = r"/Users/chromecbb/Library/Application Support/Google/Chrome"
-CHROME_CANARY_USER_DATA_DIR = r"/Users/chromecbb/Library/Application Support/Google/Chrome Canary"
-# CHROME_USER_DATA_DIR = r"C:\Users\windo\AppData\Local\Google\Chrome\User Data" # for windows
-
 CHROME_PROFILE = "Profile 1"
+CHROME_USER_DATA_DIR_MAC = r"/Users/chromecbb/Library/Application Support/Google/Chrome"
+CHROME_CANARY_USER_DATA_DIR_MAC = r"/Users/chromecbb/Library/Application Support/Google/Chrome Canary"
+CHROME_DEV_USER_DATA_DIR_MAC = r"/Users/chromecbb/Library/Application Support/Google/Chrome Dev"
+CHROME_DRIVER_LOC_MAC = '/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/chromedriver'
+
+CHROME_DRIVER_LOC_WIN = r'C:\Users\windo\Downloads\chromedriver_win32\chromedriver'
+CHROME_USER_DATA_DIR_WIN = r"C:\Users\windo\AppData\Local\Google\Chrome\User Data" # for windows
+
 EDGE_USER_DATA_DIR = r"C:\Users\windo\AppData\Local\Microsoft\Edge\User Data"
 EDGE_PROFILE = "Profile 2"
 
@@ -30,6 +34,8 @@ class BenchOMatic():
         self.incognito = options.incognito
         self.use_predefined_profile = options.use_predefined_profile
         self.use_randomized_finch_flag = options.use_randomized_finch_flag
+        self.use_enable_field_trail_config = options.use_enable_field_trail_config
+        self.use_top_seeds = options.use_top_seeds
         self.compare_stable_browsers = options.compare_stable_browsers
         self.driver = None
         self.detect_browsers()
@@ -44,7 +50,7 @@ class BenchOMatic():
             self.w = wmi.WMI(namespace="root\OpenHardwareMonitor")
         if self.full_speedometer2_score == True:
             self.benchmarks = {
-                'Speedometer 2.0': {
+                'Speedometer 2.1': {
                     'url': 'https://browserbench.org/Speedometer2.1/',
                     'start': 'startTest();',
                     'done': "return (document.getElementById('results-with-statistics') && document.getElementById('results-with-statistics').innerText.length > 0);",
@@ -56,8 +62,8 @@ class BenchOMatic():
                     'done': "return (document.querySelector('#results>.body>.score-container>.score').innerText.length > 0);",
                     'result': "return parseFloat(document.querySelector('#results>.body>.score-container>.score').innerText);"
                 },
-                'JetStream 2': {
-                    'url': 'https://browserbench.org/JetStream2.1/',
+                'JetStream 2.0': {
+                    'url': 'https://browserbench.org/JetStream2.0/',
                     'start': 'JetStream.start();',
                     'done': "return (document.querySelectorAll('#result-summary>.score').length > 0);",
                     'result': "return parseFloat(document.querySelector('#result-summary>.score').innerText);"
@@ -65,7 +71,7 @@ class BenchOMatic():
             }
         else:
             self.benchmarks = {
-                'Speedometer 2.0': {
+                'Speedometer 2.1': {
                     'url': 'https://browserbench.org/Speedometer2.1/',
                     'start': 'startTest();',
                     'done': "return (document.getElementById('results-with-statistics') && document.getElementById('results-with-statistics').innerText.length > 0);",
@@ -97,8 +103,8 @@ class BenchOMatic():
                     'done': "return (document.querySelector('#results>.body>.score-container>.score').innerText.length > 0);",
                     'result': "return parseFloat(document.querySelector('#results>.body>.score-container>.score').innerText);"
                 },
-                'JetStream 2': {
-                    'url': 'https://browserbench.org/JetStream2.1/',
+                'JetStream 2.0': {
+                    'url': 'https://browserbench.org/JetStream2.0/',
                     'start': 'JetStream.start();',
                     'done': "return (document.querySelectorAll('#result-summary>.score').length > 0);",
                     'result': "return parseFloat(document.querySelector('#result-summary>.score').innerText);"
@@ -112,16 +118,18 @@ class BenchOMatic():
             print('Record detailed speedometer2 score')
         if self.use_predefined_profile:
             print('Use predefined user profile')
-        else:
-            print('Not use predefined user profile')
         if self.use_randomized_finch_flag:
             print('Use randomized finch flag')
-        else:
-            print('Not use randomized finch flag')
+        if self.use_enable_field_trail_config:
+            print('Use enable filed trail config')
+        if self.use_top_seeds:
+            print('Use top seeds')
         if self.incognito:
             print('Use incognito mode')
+        if self.compare_stable_browsers:
+            print('Compare stable browsers')
         else:
-            print('Not use incognito mode')
+            print('Compare unstable browsers')
 
         """Run the requested tests"""
         benchmark_names = list(self.benchmarks.keys())
@@ -260,33 +268,46 @@ class BenchOMatic():
                     shutil.rmtree(profile_dir, ignore_errors=True)
                 os.makedirs(profile_dir)
                 options.add_argument(r"--user-data-dir={}".format(profile_dir))
-                options.add_argument("--enable-field-trial-config")
                 options.add_experimental_option("excludeSwitches", ['disable-background-networking'])
-                if self.compare_stable_browsers:
-                    self.driver = webdriver.Chrome(options=options,
-                                               service=Service(ChromeDriverManager(version=ver).install()))
-                   # self.driver = webdriver.Chrome(options=options,
-                   #                            service=Service(r'C:\Users\windo\Downloads\chromedriver_win32\chromedriver'))
-                else:
-                    # You need download latest chrome driver via: https://chromedriver.chromium.org/chromedriver-canary,
-                    # and use the location for the Service(...) input.
-                    self.driver = webdriver.Chrome(options=options,
-                                               service=Service('/Users/yuanhuang/bench-o-matic/chromedriver'))
+                self.driver = self.get_chrome_driver(options, ver)
                 time.sleep(10)
                 self.driver.quit()
             elif self.use_predefined_profile:
-                options.add_argument(r"--user-data-dir={}".format(CHROME_USER_DATA_DIR))
+                if self.plat == "Windows":
+                    options.add_argument(r"--user-data-dir={}".format(CHROME_USER_DATA_DIR_WIN))
+                else:
+                    options.add_argument(r"--user-data-dir={}".format(CHROME_USER_DATA_DIR_MAC))
                 options.add_argument(r"--profile-directory={}".format(CHROME_PROFILE))
+            elif self.use_enable_field_trail_config:
+                cur_dir = os.getcwd()
+                # Create an empty profile directory
+                profile_dir = os.path.join(cur_dir, "Default")
+                if os.path.exists(profile_dir):
+                    shutil.rmtree(profile_dir, ignore_errors=True)
+                os.makedirs(profile_dir)
+                options.add_argument(r"--user-data-dir={}".format(profile_dir))
+                options.add_argument("--enable-field-trial-config")
+                options.add_experimental_option("excludeSwitches", ['disable-background-networking'])
+            elif self.use_top_seeds:
+                cur_dir = os.getcwd()
+                # Create an empty profile directory
+                profile_dir = os.path.join(cur_dir, "Default")
+                if os.path.exists(profile_dir):
+                    shutil.rmtree(profile_dir, ignore_errors=True)
+                os.makedirs(profile_dir)
+                options.add_argument(r"--user-data-dir={}".format(profile_dir))
+                options.add_experimental_option("excludeSwitches", ['disable-background-networking'])
+                # The current top seeds are only for mac
+                options.add_argument("--variations-test-seed-path=/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/mac_stable_variations_seed_with_default_groups.json")
             if self.compare_stable_browsers:
-                self.driver = webdriver.Chrome(options=options,
-                                               service=Service(ChromeDriverManager(version=ver).install()))
-               # self.driver = webdriver.Chrome(options=options,
-               #                                service=Service(r'C:\Users\windo\Downloads\chromedriver_win32\chromedriver'))
+                self.driver = self.get_chrome_driver(options, ver)
             else:
-                # You need download latest chrome driver via: https://chromedriver.chromium.org/chromedriver-canary,
-                # and use the location for the Service(...) input.
-                self.driver = webdriver.Chrome(options=options,
-                                               service=Service('/Users/yuanhuang/bench-o-matic/chromedriver'))
+                if self.plat == "Windows":
+                    self.driver = webdriver.Chrome(options=options,
+                        service=Service(CHROME_DRIVER_LOC_WIN))
+                else:
+                    self.driver = webdriver.Chrome(options=options,
+                        service=Service(CHROME_DRIVER_LOC_MAC))
             if plat == "Darwin":
                 self.driver.execute_cdp_cmd(
                     'Runtime.setMaxCallStackSizeToCapture',
@@ -362,6 +383,25 @@ class BenchOMatic():
         # Make sure all browsers use the same window size
         self.driver.set_window_position(0, 0)
         self.driver.set_window_size(1440, 900)
+
+    def get_chrome_driver(self, options, ver):
+        from selenium.webdriver.chrome.service import Service
+        from webdriver_manager.chrome import ChromeDriverManager
+        """Get ready to run the given benchmark"""
+        try:
+            driver = webdriver.Chrome(options=options,
+                service=Service(ChromeDriverManager(version=ver).install()))
+        except:
+            # For Chrome Canary, download the latest chrome driver via: https://chromedriver.chromium.org/chromedriver-canary,
+            # and use the location for the Service(...) input.
+            # For Chrome Dev, download the latest chrome driver based on: https://chromedriver.chromium.org/downloads/version-selection
+            if self.plat == "Windows":
+                driver = webdriver.Chrome(options=options,
+                    service=Service(CHROME_DRIVER_LOC_WIN))
+            else:
+                driver = webdriver.Chrome(options=options,
+                    service=Service(CHROME_DRIVER_LOC_MAC))
+        return driver
 
     def prepare_benchmark(self, benchmark):
         """Get ready to run the given benchmark"""
@@ -575,7 +615,7 @@ class BenchOMatic():
                 browsers = self.detect_browser('Google Chrome', 'Chrome', 'Chrome', browsers)
                 browsers = self.detect_browser('Safari', 'Safari', 'Safari', browsers)
             else:
-                browsers = self.detect_browser('Google Chrome Canary', 'Chrome Canary', 'Chrome', browsers)
+                browsers = self.detect_browser('Google Chrome Dev', 'Chrome Dev', 'Chrome', browsers)
                 browsers = self.detect_browser('Safari Technology Preview', 'Safari Technology Preview', 'Safari', browsers)
 
             # Get the version of each
@@ -588,14 +628,14 @@ class BenchOMatic():
                 if os.path.isfile(plist_file):
                     with open(plist_file, 'rb') as f:
                         browser_version = plistlib.load(f)['CFBundleShortVersionString']
-                        if name.startswith('Chrome'):
-                            build = re.search(r'^([\d.][\d.][\d])', browser_version).group(1)
-                            latest = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE_{}'.format(build)).text
-                            if latest:
-                                browser['version'] = latest
+                        #if name.startswith('Chrome'):
+                        #    build = re.search(r'^([\d.][\d.][\d])', browser_version).group(1)
+                        #    latest = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE_{}'.format(build)).text
+                        #    if latest:
+                        #        browser['version'] = latest
                                 # Get the version up to the build and fetch the latest matching Chromedriver build
-                        else:
-                            browser['version'] = browser_version
+                        #else:
+                        browser['version'] = browser_version
 
         logging.info('Detected Browsers:')
         for browser in browsers:
@@ -624,6 +664,8 @@ if '__main__' == __name__:
     parser.add_argument('--incognito', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--use_predefined_profile', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--use_randomized_finch_flag', default=False, type=lambda x: (str(x).lower() == 'true'))
+    parser.add_argument('--use_enable_field_trail_config', default=False, type=lambda x: (str(x).lower() == 'true'))
+    parser.add_argument('--use_top_seeds', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--sleep_interval', type=int, default=30, help='Time.sleep() interval between pair of runs.')
     parser.add_argument('--max_wait_time', type=int, default=1200, help='Maximum wait time for a benchmark to finish.')
     parser.add_argument('--compare_stable_browsers', default=True, type=lambda x: (str(x).lower() == 'true'))
