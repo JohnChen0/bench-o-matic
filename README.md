@@ -93,7 +93,14 @@ Upgrade pip and install all dependencies.
 
 ```
 python -m pip install --upgrade pip
-python -m pip install --require-hashes -r requirements.txt
+python -m pip install --require-hashes -r requirements_win.txt
+```
+
+To update/generate requirements_win.txt file:
+
+```bash
+pip3 install pip-tools
+pip-compile --generate-hashes requirements_win.in
 ```
 
 To deactivate venv:
