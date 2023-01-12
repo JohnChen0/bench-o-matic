@@ -62,8 +62,8 @@ class BenchOMatic():
                     'done': "return (document.querySelector('#results>.body>.score-container>.score').innerText.length > 0);",
                     'result': "return parseFloat(document.querySelector('#results>.body>.score-container>.score').innerText);"
                 },
-                'JetStream 2.0': {
-                    'url': 'https://browserbench.org/JetStream2.0/',
+                'JetStream 2.1': {
+                    'url': 'https://browserbench.org/JetStream2.1/',
                     'start': 'JetStream.start();',
                     'done': "return (document.querySelectorAll('#result-summary>.score').length > 0);",
                     'result': "return parseFloat(document.querySelector('#result-summary>.score').innerText);"
@@ -411,6 +411,7 @@ class BenchOMatic():
     def run_benchmark(self, benchmark):
         """Run the benchmark and wait for it to finish"""
         logging.info('Starting benchmark...')
+        time.sleep(5)
         self.driver.execute_script(benchmark['start'])
 
         # Wait up to an hour for the benchmark to run
