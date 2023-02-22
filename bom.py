@@ -29,6 +29,7 @@ class BenchOMatic():
     def __init__(self, options):
         self.runs = options.runs
         self.full_speedometer2_score = options.full_speedometer2_score
+        self.full_motionmark_score = options.full_motionmark_score
         self.sleep_interval = options.sleep_interval
         self.max_wait_time = options.max_wait_time
         self.incognito = options.incognito
@@ -48,67 +49,73 @@ class BenchOMatic():
         if self.plat == "Windows":
             import wmi
             self.w = wmi.WMI(namespace="root\OpenHardwareMonitor")
-        if self.full_speedometer2_score == True:
-            self.benchmarks = {
-                'Speedometer 2.1': {
-                    'url': 'https://browserbench.org/Speedometer2.1/',
-                    'start': 'startTest();',
-                    'done': "return (document.getElementById('results-with-statistics') && document.getElementById('results-with-statistics').innerText.length > 0);",
-                    'result': "return parseInt(document.getElementById('result-number').innerText);"
-                },
-                'MotionMark 1.2': {
-                    'url': 'https://browserbench.org/MotionMark1.2/',
-                    'start': 'benchmarkController.startBenchmark();',
-                    'done': "return (document.querySelector('#results>.body>.score-container>.score').innerText.length > 0);",
-                    'result': "return parseFloat(document.querySelector('#results>.body>.score-container>.score').innerText);"
-                },
-                'JetStream 2.1': {
-                    'url': 'https://browserbench.org/JetStream2.1/',
-                    'start': 'JetStream.start();',
-                    'done': "return (document.querySelectorAll('#result-summary>.score').length > 0);",
-                    'result': "return parseFloat(document.querySelector('#result-summary>.score').innerText);"
-                }
+        self.benchmarks = {
+            'JetStream 2.1': {
+                'url': 'https://browserbench.org/JetStream2.1/',
+                'start': 'JetStream.start();',
+                'done': "return (document.querySelectorAll('#result-summary>.score').length > 0);",
+                'result': "return parseFloat(document.querySelector('#result-summary>.score').innerText);"
+            }
+        }
+        if self.full_speedometer2_score:
+            self.benchmarks['Speedometer 2.1'] = {
+                'url': 'https://browserbench.org/Speedometer2.1/',
+                'start': 'startTest();',
+                'done': "return (document.getElementById('results-with-statistics') && document.getElementById('results-with-statistics').innerText.length > 0);",
+                'result': "return parseInt(document.getElementById('result-number').innerText);"
             }
         else:
-            self.benchmarks = {
-                'Speedometer 2.1': {
-                    'url': 'https://browserbench.org/Speedometer2.1/',
-                    'start': 'startTest();',
-                    'done': "return (document.getElementById('results-with-statistics') && document.getElementById('results-with-statistics').innerText.length > 0);",
-                    'result': "return [parseInt(document.getElementById('result-number').innerText), benchmarkClient._measuredValuesList];",
-                    'suites': [
-                        'Angular2-TypeScript-TodoMVC',
-                        'AngularJS-TodoMVC',
-                        'BackboneJS-TodoMVC',
-                        'Elm-TodoMVC',
-                        'EmberJS-Debug-TodoMVC',
-                        'EmberJS-TodoMVC',
-                        'Flight-TodoMVC',
-                        'Inferno-TodoMVC',
-                        'Preact-TodoMVC',
-                        'React-Redux-TodoMVC',
-                        'React-TodoMVC',
-                        'Vanilla-ES2015-Babel-Webpack-TodoMVC',
-                        'Vanilla-ES2015-TodoMVC',
-                        'VanillaJS-TodoMVC',
-                        'VueJS-TodoMVC',
-                        'jQuery-TodoMVC',
-                    ],
-                    'suite_result':
-                        lambda results, suite: sum([20000 / r['tests'][suite]['total'] for r in results[1]]) / len(results[1]),
-                },
-                'MotionMark 1.2': {
-                    'url': 'https://browserbench.org/MotionMark1.2/',
-                    'start': 'benchmarkController.startBenchmark();',
-                    'done': "return (document.querySelector('#results>.body>.score-container>.score').innerText.length > 0);",
-                    'result': "return parseFloat(document.querySelector('#results>.body>.score-container>.score').innerText);"
-                },
-                'JetStream 2.0': {
-                    'url': 'https://browserbench.org/JetStream2.0/',
-                    'start': 'JetStream.start();',
-                    'done': "return (document.querySelectorAll('#result-summary>.score').length > 0);",
-                    'result': "return parseFloat(document.querySelector('#result-summary>.score').innerText);"
-                }
+            self.benchmarks['Speedometer 2.1'] = {
+                'url': 'https://browserbench.org/Speedometer2.1/',
+                'start': 'startTest();',
+                'done': "return (document.getElementById('results-with-statistics') && document.getElementById('results-with-statistics').innerText.length > 0);",
+                'result': "return [parseInt(document.getElementById('result-number').innerText), benchmarkClient._measuredValuesList];",
+                'suites': [
+                    'Angular2-TypeScript-TodoMVC',
+                    'AngularJS-TodoMVC',
+                    'BackboneJS-TodoMVC',
+                    'Elm-TodoMVC',
+                    'EmberJS-Debug-TodoMVC',
+                    'EmberJS-TodoMVC',
+                    'Flight-TodoMVC',
+                    'Inferno-TodoMVC',
+                    'Preact-TodoMVC',
+                    'React-Redux-TodoMVC',
+                    'React-TodoMVC',
+                    'Vanilla-ES2015-Babel-Webpack-TodoMVC',
+                    'Vanilla-ES2015-TodoMVC',
+                    'VanillaJS-TodoMVC',
+                    'VueJS-TodoMVC',
+                    'jQuery-TodoMVC',
+                ],
+                'suite_result':
+                    lambda results, suite: sum([20000 / r['tests'][suite]['total'] for r in results[1]]) / len(results[1]),
+            }
+        if self.full_motionmark_score:
+            self.benchmarks['MotionMark 1.2'] = {
+                'url': 'https://browserbench.org/MotionMark1.2/',
+                'start': 'benchmarkController.startBenchmark();',
+                'done': "return (document.querySelector('#results>.body>.score-container>.score').innerText.length > 0);",
+                'result': "return parseFloat(document.querySelector('#results>.body>.score-container>.score').innerText);"
+            }
+        else:
+            self.benchmarks['MotionMark 1.2'] = {
+                'url': 'https://browserbench.org/MotionMark1.2/',
+                'start': 'benchmarkController.startBenchmark();',
+                'done': "return (document.querySelector('#results>.body>.score-container>.score').innerText.length > 0);",
+                'result': "return [parseFloat(document.querySelector('#results>.body>.score-container>.score').innerText), benchmarkRunnerClient.results._results.iterationsResults[0].testsResults.MotionMark];",
+                'suites': [
+                    'Multiply',
+                    'Canvas Arcs',
+                    'Leaves',
+                    'Paths',
+                    'Canvas Lines',
+                    'Images',
+                    'Design',
+                    'Suits'
+                ],
+                'suite_result':
+                    lambda results, suite: results[1][suite]['score']
             }
 
     def run(self):
@@ -116,6 +123,10 @@ class BenchOMatic():
             print('Record speedometer2 score')
         else:
             print('Record detailed speedometer2 score')
+        if self.full_motionmark_score:
+            print('Record motionmark score')
+        else:
+            print('Record detailed motionmark score')
         if self.use_predefined_profile:
             print('Use predefined user profile')
         if self.use_randomized_finch_flag:
@@ -138,33 +149,22 @@ class BenchOMatic():
         # Initialize the CSV result files with a header
         for benchmark_name in benchmark_names:
             csv_file = self.bench_root + benchmark_name.replace(' ', '') + '.csv'
-            if not self.full_speedometer2_score:
-                with open(csv_file, 'wt') as f:
-                    f.write('Run')
-                    display_names = []
-                    for browser_name in browser_names:
-                        if 'version' in self.browsers[browser_name]:
-                            browser_name += ' ' + self.browsers[browser_name]['version']
-                        display_names.append(browser_name)
-                        f.write(',{}'.format(browser_name))
-                    if 'suites' in self.benchmarks[benchmark_name]:
-                        for suite in self.benchmarks[benchmark_name]['suites']:
-                            for browser_name in display_names:
-                                f.write(',{} {}'.format(browser_name, suite))
-                    f.write(',temp_before_test, temp_after_test')
-                    f.write('\n')
-            else:
-                with open(csv_file, 'wt') as f:
-                    f.write('Run')
-                    for browser_name in browser_names:
-                        if 'version' in self.browsers[browser_name]:
-                            browser_name += ' ' + self.browsers[browser_name]['version']
-                        f.write(',{}'.format(browser_name))
-                    f.write(',temp_before_test, temp_after_test')
-                    f.write('\n')
+            with open(csv_file, 'wt') as f:
+                f.write('Run')
+                display_names = []
+                for browser_name in browser_names:
+                    if 'version' in self.browsers[browser_name]:
+                        browser_name += ' ' + self.browsers[browser_name]['version']
+                    display_names.append(browser_name)
+                    f.write(',{}'.format(browser_name))
+                if 'suites' in self.benchmarks[benchmark_name]:
+                    for suite in self.benchmarks[benchmark_name]['suites']:
+                        for browser_name in display_names:
+                            f.write(',{} {}'.format(browser_name, suite))
+                f.write(',temp_before_test, temp_after_test')
+                f.write('\n')
 
-        benchmarks = list(self.benchmarks.keys())
-        for benchmark_name in benchmarks:
+        for benchmark_name in benchmark_names:
             run_orders = self.get_run_order(browser_names)
             print('Run order: {}'.format(run_orders))
             cur_runs = 0
@@ -210,30 +210,21 @@ class BenchOMatic():
 
                 # Write the results for each run as they complete
                 csv_file = self.bench_root + benchmark_name.replace(' ', '') + '.csv'
-                if not self.full_speedometer2_score:
-                    with open(csv_file, 'at') as f:
-                        f.write(self.run_timestamp)
-                        for browser_name in browser_names:
-                            result = results[browser_name] if browser_name in results else ''
-                            f.write(',{}'.format(result[0] if isinstance(result, list) else result))
-                        if 'suites' in benchmark:
-                            for suite in benchmark['suites']:
-                                for browser_name in browser_names:
-                                    if browser_name in results:
-                                        f.write(',{}'.format(benchmark['suite_result'](results[browser_name], suite)))
-                                    else:
-                                        f.write(',')
-                        if self.plat == "Windows":
-                            f.write(',{}, {}'.format(temperature_before_test, temperature_after_test))
-                        f.write('\n')
-                else:
-                    with open(csv_file, 'at') as f:
-                        f.write(self.run_timestamp)
-                        for browser_name in browser_names:
-                            f.write(',{}'.format(results[browser_name] if browser_name in results else ''))
-                        if self.plat == "Windows":
-                            f.write(',{}, {}'.format(temperature_before_test, temperature_after_test))
-                        f.write('\n')
+                with open(csv_file, 'at') as f:
+                    f.write(self.run_timestamp)
+                    for browser_name in browser_names:
+                        result = results[browser_name] if browser_name in results else ''
+                        f.write(',{}'.format(result[0] if isinstance(result, list) else result))
+                    if 'suites' in benchmark:
+                        for suite in benchmark['suites']:
+                            for browser_name in browser_names:
+                                if browser_name in results:
+                                    f.write(',{}'.format(benchmark['suite_result'](results[browser_name], suite)))
+                                else:
+                                    f.write(',')
+                    if self.plat == "Windows":
+                        f.write(',{}, {}'.format(temperature_before_test, temperature_after_test))
+                    f.write('\n')
                 cur_runs += 1
             time.sleep(1200)
         
@@ -411,7 +402,7 @@ class BenchOMatic():
     def run_benchmark(self, benchmark):
         """Run the benchmark and wait for it to finish"""
         logging.info('Starting benchmark...')
-        time.sleep(5)
+        time.sleep(10)
         self.driver.execute_script(benchmark['start'])
 
         # Wait up to an hour for the benchmark to run
@@ -662,6 +653,7 @@ if '__main__' == __name__:
                         help="Increase verbosity (specify multiple times for more). -vvvv for full debug output.")
     parser.add_argument('-r', '--runs', type=int, default=1, help='Number of runs.')
     parser.add_argument('--full_speedometer2_score', default=True, type=lambda x: (str(x).lower() == 'true'))
+    parser.add_argument('--full_motionmark_score', default=True, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--incognito', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--use_predefined_profile', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--use_randomized_finch_flag', default=False, type=lambda x: (str(x).lower() == 'true'))
