@@ -30,6 +30,7 @@ class BenchOMatic():
         self.runs = options.runs
         self.full_speedometer2_score = options.full_speedometer2_score
         self.full_motionmark_score = options.full_motionmark_score
+        self.full_jetstream_score = options.full_jetstream_score
         self.sleep_interval = options.sleep_interval
         self.max_wait_time = options.max_wait_time
         self.incognito = options.incognito
@@ -49,6 +50,7 @@ class BenchOMatic():
         if self.plat == "Windows":
             import wmi
             self.w = wmi.WMI(namespace="root\OpenHardwareMonitor")
+
         self.benchmarks = {
             'JetStream 2.1': {
                 'url': 'https://browserbench.org/JetStream2.1/',
@@ -57,6 +59,7 @@ class BenchOMatic():
                 'result': "return parseFloat(document.querySelector('#result-summary>.score').innerText);"
             }
         }
+
         if self.full_speedometer2_score:
             self.benchmarks['Speedometer 2.1'] = {
                 'url': 'https://browserbench.org/Speedometer2.1/',
@@ -127,6 +130,10 @@ class BenchOMatic():
             print('Record motionmark score')
         else:
             print('Record detailed motionmark score')
+        if self.full_jetstream_score:
+            print('Record jetstream score')
+        else:
+            print('Record detailed jetstream score')
         if self.use_predefined_profile:
             print('Use predefined user profile')
         if self.use_randomized_finch_flag:
@@ -165,6 +172,9 @@ class BenchOMatic():
                 f.write('\n')
 
         for benchmark_name in benchmark_names:
+            if 'Motion' in benchmark_name:
+                print('Motion in: ' + benchmark_name)
+                self.runs = 62
             run_orders = self.get_run_order(browser_names)
             print('Run order: {}'.format(run_orders))
             cur_runs = 0
@@ -193,7 +203,7 @@ class BenchOMatic():
                         results[name] = self.collect_result(benchmark)
                     else:
                         logging.info('Benchmark failed')
-                    self.driver.close()
+                   # self.driver.close()
                     try:
                         self.driver.quit()
                     except Exception:
@@ -290,6 +300,7 @@ class BenchOMatic():
                 options.add_experimental_option("excludeSwitches", ['disable-background-networking'])
                 # The current top seeds are only for mac
                 options.add_argument("--variations-test-seed-path=/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/mac_stable_variations_seed_with_default_groups.json")
+                # options.add_argument("--variations-test-seed-path=/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/mac_stable_random_variations_seed.json")
             if self.compare_stable_browsers:
                 self.driver = self.get_chrome_driver(options, ver)
             else:
@@ -402,7 +413,10 @@ class BenchOMatic():
     def run_benchmark(self, benchmark):
         """Run the benchmark and wait for it to finish"""
         logging.info('Starting benchmark...')
-        time.sleep(10)
+        if 'Jet' in benchmark['url']:
+            time.sleep(60)
+        else:
+            time.sleep(5)
         self.driver.execute_script(benchmark['start'])
 
         # Wait up to an hour for the benchmark to run
@@ -654,6 +668,7 @@ if '__main__' == __name__:
     parser.add_argument('-r', '--runs', type=int, default=1, help='Number of runs.')
     parser.add_argument('--full_speedometer2_score', default=True, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--full_motionmark_score', default=True, type=lambda x: (str(x).lower() == 'true'))
+    parser.add_argument('--full_jetstream_score', default=True, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--incognito', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--use_predefined_profile', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--use_randomized_finch_flag', default=False, type=lambda x: (str(x).lower() == 'true'))
