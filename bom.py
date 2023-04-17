@@ -36,7 +36,7 @@ class BenchOMatic():
         self.incognito = options.incognito
         self.use_predefined_profile = options.use_predefined_profile
         self.use_randomized_finch_flag = options.use_randomized_finch_flag
-        self.use_enable_field_trail_config = options.use_enable_field_trail_config
+        self.use_enable_field_trial_config = options.use_enable_field_trial_config
         self.use_top_seeds = options.use_top_seeds
         self.compare_stable_browsers = options.compare_stable_browsers
         self.driver = None
@@ -138,8 +138,8 @@ class BenchOMatic():
             print('Use predefined user profile')
         if self.use_randomized_finch_flag:
             print('Use randomized finch flag')
-        if self.use_enable_field_trail_config:
-            print('Use enable filed trail config')
+        if self.use_enable_field_trial_config:
+            print('Use enable field trial config')
         if self.use_top_seeds:
             print('Use top seeds')
         if self.incognito:
@@ -279,7 +279,7 @@ class BenchOMatic():
                 else:
                     options.add_argument(r"--user-data-dir={}".format(CHROME_USER_DATA_DIR_MAC))
                 options.add_argument(r"--profile-directory={}".format(CHROME_PROFILE))
-            elif self.use_enable_field_trail_config:
+            elif self.use_enable_field_trial_config:
                 cur_dir = os.getcwd()
                 # Create an empty profile directory
                 profile_dir = os.path.join(cur_dir, "Default")
@@ -672,12 +672,12 @@ if '__main__' == __name__:
     parser.add_argument('--incognito', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--use_predefined_profile', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--use_randomized_finch_flag', default=False, type=lambda x: (str(x).lower() == 'true'))
-    parser.add_argument('--use_enable_field_trail_config', default=False, type=lambda x: (str(x).lower() == 'true'))
+    parser.add_argument('--use_enable_field_trial_config', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--use_top_seeds', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--sleep_interval', type=int, default=30, help='Time.sleep() interval between pair of runs.')
     parser.add_argument('--max_wait_time', type=int, default=1200, help='Maximum wait time for a benchmark to finish.')
     parser.add_argument('--compare_stable_browsers', default=True, type=lambda x: (str(x).lower() == 'true'))
-    options, _ = parser.parse_known_args()
+    options = parser.parse_args()
 
     # Set up logging
     log_level = logging.CRITICAL
