@@ -377,10 +377,16 @@ class BenchOMatic():
         self.driver.set_script_timeout(30)
 
         # Get the browser version
-        if 'version' in self.driver.capabilities:
-            self.current_browser += ' ' + self.driver.capabilities['version']
-        elif 'browserVersion' in self.driver.capabilities:
-            self.current_browser += ' ' + self.driver.capabilities['browserVersion']
+        browser_version = self.driver.capabilities.get('browserVersion')
+        if browser_version is None:
+            browser_version = self.driver.capabilities.get('version')
+
+        if browser_version is not None:
+            if 'version' in browser and browser['version'] != browser_version:
+                raise Exception(
+                    'Unexpected browser version: expect {}, but got {}'.format(
+                        browser['version'], browser_version))
+            self.current_browser += ' ' + browser_version
 
         # Make sure all browsers use the same window size
         self.driver.set_window_position(0, 0)
