@@ -171,7 +171,12 @@ class BenchOMatic():
                 f.write(',temp_before_test, temp_after_test')
                 f.write('\n')
 
+        first_benchmark = True
         for benchmark_name in benchmark_names:
+            if first_benchmark:
+                first_benchmark = False
+            else:
+                time.sleep(1200)
             if 'Motion' in benchmark_name:
                 print('Motion in: ' + benchmark_name)
                 self.runs = 62
@@ -236,7 +241,6 @@ class BenchOMatic():
                         f.write(',{}, {}'.format(temperature_before_test, temperature_after_test))
                     f.write('\n')
                 cur_runs += 1
-            time.sleep(1200)
         
     def launch_browser(self, browser):
         """Launch the selected browser"""
@@ -245,8 +249,6 @@ class BenchOMatic():
         if browser['type'] == 'Chrome':
             from selenium.webdriver.chrome.options import Options
             from selenium.webdriver.chrome.service import Service
-            from webdriver_manager.chrome import ChromeDriverManager
-            os.environ['WDM_LOG'] = '0'
             options = Options()
             # incognito mode
             if self.incognito:
@@ -280,36 +282,12 @@ class BenchOMatic():
                     options.add_argument(r"--user-data-dir={}".format(CHROME_USER_DATA_DIR_MAC))
                 options.add_argument(r"--profile-directory={}".format(CHROME_PROFILE))
             elif self.use_enable_field_trial_config:
-                cur_dir = os.getcwd()
-                # Create an empty profile directory
-                profile_dir = os.path.join(cur_dir, "Default")
-                if os.path.exists(profile_dir):
-                    shutil.rmtree(profile_dir, ignore_errors=True)
-                os.makedirs(profile_dir)
-                options.add_argument(r"--user-data-dir={}".format(profile_dir))
                 options.add_argument("--enable-field-trial-config")
-                options.add_experimental_option("excludeSwitches", ['disable-background-networking'])
             elif self.use_top_seeds:
-                cur_dir = os.getcwd()
-                # Create an empty profile directory
-                profile_dir = os.path.join(cur_dir, "Default")
-                if os.path.exists(profile_dir):
-                    shutil.rmtree(profile_dir, ignore_errors=True)
-                os.makedirs(profile_dir)
-                options.add_argument(r"--user-data-dir={}".format(profile_dir))
-                options.add_experimental_option("excludeSwitches", ['disable-background-networking'])
                 # The current top seeds are only for mac
                 options.add_argument("--variations-test-seed-path=/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/mac_stable_variations_seed_with_default_groups.json")
                 # options.add_argument("--variations-test-seed-path=/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/mac_stable_random_variations_seed.json")
-            if self.compare_stable_browsers:
-                self.driver = self.get_chrome_driver(options, ver)
-            else:
-                if self.plat == "Windows":
-                    self.driver = webdriver.Chrome(options=options,
-                        service=Service(CHROME_DRIVER_LOC_WIN))
-                else:
-                    self.driver = webdriver.Chrome(options=options,
-                        service=Service(CHROME_DRIVER_LOC_MAC))
+            self.driver = self.get_chrome_driver(options, ver)
             if plat == "Darwin":
                 self.driver.execute_cdp_cmd(
                     'Runtime.setMaxCallStackSizeToCapture',
@@ -394,21 +372,15 @@ class BenchOMatic():
 
     def get_chrome_driver(self, options, ver):
         from selenium.webdriver.chrome.service import Service
-        from webdriver_manager.chrome import ChromeDriverManager
-        """Get ready to run the given benchmark"""
-        try:
+        # For Chrome Canary, download the latest chrome driver via: https://chromedriver.chromium.org/chromedriver-canary,
+        # and use the location for the Service(...) input.
+        # For Chrome Dev, download the latest chrome driver based on: https://chromedriver.chromium.org/downloads/version-selection
+        if self.plat == "Windows":
             driver = webdriver.Chrome(options=options,
-                service=Service(ChromeDriverManager(version=ver).install()))
-        except:
-            # For Chrome Canary, download the latest chrome driver via: https://chromedriver.chromium.org/chromedriver-canary,
-            # and use the location for the Service(...) input.
-            # For Chrome Dev, download the latest chrome driver based on: https://chromedriver.chromium.org/downloads/version-selection
-            if self.plat == "Windows":
-                driver = webdriver.Chrome(options=options,
-                    service=Service(CHROME_DRIVER_LOC_WIN))
-            else:
-                driver = webdriver.Chrome(options=options,
-                    service=Service(CHROME_DRIVER_LOC_MAC))
+                service=Service(CHROME_DRIVER_LOC_WIN))
+        else:
+            driver = webdriver.Chrome(options=options,
+                service=Service(CHROME_DRIVER_LOC_MAC))
         return driver
 
     def prepare_benchmark(self, benchmark):
