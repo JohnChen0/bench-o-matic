@@ -1,0 +1,1 @@
+python bom.py --runs 22 --full_speedometer2_score=False --full_motionmark_score=False --use_randomized_finch_flag=True --compare_stable_browsers=True --sleep_interval=30 > log_win_%DATE:~10,4%-%DATE:~4,2%-%DATE:~7,2%.txt
