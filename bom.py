@@ -13,10 +13,13 @@ from time import monotonic
 
 
 CHROME_PROFILE = "Profile 1"
-CHROME_USER_DATA_DIR_MAC = r"/Users/chromecbb/Library/Application Support/Google/Chrome"
-CHROME_CANARY_USER_DATA_DIR_MAC = r"/Users/chromecbb/Library/Application Support/Google/Chrome Canary"
-CHROME_DEV_USER_DATA_DIR_MAC = r"/Users/chromecbb/Library/Application Support/Google/Chrome Dev"
-CHROME_DRIVER_LOC_MAC = '/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/chromedriver'
+CHROME_USER_DATA_DIR_MAC = os.path.expanduser(
+    '~/Library/Application Support/Google/Chrome')
+CHROME_CANARY_USER_DATA_DIR_MAC = os.path.expanduser(
+    '~/Library/Application Support/Google/Chrome Canary')
+CHROME_DEV_USER_DATA_DIR_MAC = os.path.expanduser(
+    '~/Library/Application Support/Google/Chrome Dev')
+CHROME_DRIVER_LOC_MAC = os.path.abspath('chromedriver')
 
 CHROME_DRIVER_LOC_WIN = r'C:\Users\windo\Downloads\chromedriver_win32\chromedriver'
 CHROME_USER_DATA_DIR_WIN = r"C:\Users\windo\AppData\Local\Google\Chrome\User Data" # for windows
@@ -285,8 +288,12 @@ class BenchOMatic():
                 options.add_argument("--enable-field-trial-config")
             elif self.use_top_seeds:
                 # The current top seeds are only for mac
-                options.add_argument("--variations-test-seed-path=/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/mac_stable_variations_seed_with_default_groups.json")
-                # options.add_argument("--variations-test-seed-path=/Users/chromecbb/Desktop/bench-o-matic/bench-o-matic/mac_stable_random_variations_seed.json")
+                options.add_argument(
+                    '--variations-test-seed-path=' + os.path.abspath(
+                        'mac_stable_variations_seed_with_default_groups.json'))
+                # options.add_argument(
+                #     '--variations-test-seed-path=' + os.path.abspath(
+                #         'mac_stable_random_variations_seed.json'))
             self.driver = self.get_chrome_driver(options, ver)
             if plat == "Darwin":
                 self.driver.execute_cdp_cmd(
@@ -673,8 +680,11 @@ if '__main__' == __name__:
 
     # Keep the display awake (macos)
     if platform.system() == "Darwin":
-        subprocess.Popen(['caffeinate', '-dis'])
+        caffeinate = subprocess.Popen(['caffeinate', '-dis'])
 
     # Kick off the actual benchmarking
     bom = BenchOMatic(options)
     bom.run()
+
+    if platform.system() == "Darwin":
+        caffeinate.terminate()
