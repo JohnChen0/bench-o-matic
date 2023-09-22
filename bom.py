@@ -206,7 +206,11 @@ class BenchOMatic():
                     self.current_browser = name
                     self.launch_browser(browser)
                     self.prepare_benchmark(benchmark)
-                    run_benchmark_successful = self.run_benchmark(benchmark)
+                    try:
+                        run_benchmark_successful = self.run_benchmark(benchmark)
+                    except Exception as e:
+                        logging.error('Exception while running benchmark: %s', e)
+                        run_benchmark_successful = False
                     if run_benchmark_successful:
                         results[name] = self.collect_result(benchmark)
                     else:
