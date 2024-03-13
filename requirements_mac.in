@@ -1,4 +1,4 @@
-selenium
-psutil
-webdriver-manager
-requests
+selenium==4.7.2
+psutil==5.9.4
+webdriver-manager==3.8.5
+requests==2.28.1
