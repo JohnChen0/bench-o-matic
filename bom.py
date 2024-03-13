@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import copy
 import logging
 import os
 import platform
@@ -97,6 +98,7 @@ class BenchOMatic():
                 'suite_result':
                     lambda results, suite: sum([20000 / r['tests'][suite]['total'] for r in results[1]]) / len(results[1]),
             }
+
         if self.full_motionmark_score:
             self.benchmarks['MotionMark 1.2'] = {
                 'url': 'https://browserbench.org/MotionMark1.2/',
@@ -123,6 +125,9 @@ class BenchOMatic():
                 'suite_result':
                     lambda results, suite: results[1][suite]['score']
             }
+
+        self.benchmarks['MotionMark 1.3'] = copy.deepcopy(self.benchmarks['MotionMark 1.2'])
+        self.benchmarks['MotionMark 1.3']['url'] = 'https://browserbench.org/MotionMark1.3/'
 
     def run(self):
         if self.full_speedometer2_score:
